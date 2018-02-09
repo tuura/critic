@@ -1,0 +1,5 @@
+packages:
+- location: .
+extra-deps:
+- pugixml-0.3.3
+resolver: lts-7.24

@@ -1,0 +1,7 @@
+*.exe
+*.hi
+*.o
+dist/
+.stack-work/
+*.DS_Store
+
