@@ -5,7 +5,7 @@ data Graph = Graph
                 xmlns     :: String,
                 graphType :: GraphType,
                 graphInstance :: GraphInstance
-            }
+            } deriving Eq
 
 instance Show Graph where
     show g = "Graph\n" ++
@@ -18,7 +18,7 @@ data GraphType = GraphType
                    graphTypeID  :: String,
                    messageTypes :: [MessageType],
                    deviceTypes  :: [DeviceType]
-               }
+               } deriving Eq
 
 instance Show GraphType where
     show g = "GraphType\n" ++
@@ -28,20 +28,20 @@ instance Show GraphType where
 
 data MessageType = MessageType
                   {
-                      messageId :: String,
+                      messageID :: String,
                       message   :: Message
-                  }
+                  } deriving Eq
 
 instance Show MessageType where
     show m = "MessageType\n" ++
-             "        id = " ++ messageId m ++ "\n" ++
+             "        id = " ++ messageID m ++ "\n" ++
              "            " ++ (show $ message m) ++ "\n"
 
 data Message = Message
              {
                  name        :: String,
                  messageType :: String
-             }
+             } deriving Eq
 
 instance Show Message where
     show m = "Message\n" ++
@@ -50,15 +50,16 @@ instance Show Message where
 
 data DeviceType = DeviceType
                 {
-                    deviceId     :: String,
+                    deviceID     :: String,
                     states       :: [State],
                     inputPins    :: [InputPin],
                     outputPins   :: [OutputPin],
                     readyToSend  :: String
-                }
+                } deriving Eq
 
 instance Show DeviceType where
     show d = "DeviceType\n" ++
+             "            " ++ deviceID d ++ "\n" ++
              "            " ++ (show $ states d) ++ "\n" ++
              "            " ++ (show $ inputPins d) ++ "\n" ++
              "            " ++ (show $ outputPins d) ++ "\n" ++
@@ -68,7 +69,7 @@ data State = State
            {
                stateName :: String,
                stateType :: String
-           }
+           } deriving Eq
 
 instance Show State where
     show s = "State\n" ++
@@ -80,7 +81,7 @@ data InputPin = InputPin
                   inputName     :: String,
                   iMessageTypeID :: String,
                   onReceive     :: String
-              }
+              } deriving Eq
 
 instance Show InputPin where
     show i = "InputPin\n" ++
@@ -93,7 +94,7 @@ data OutputPin = OutputPin
                    outputName    :: String,
                    oMessageTypeID :: String,
                    onSend        :: String
-               }
+               } deriving Eq
 
 instance Show OutputPin where
     show o = "OutputPin\n" ++
@@ -107,7 +108,7 @@ data GraphInstance = GraphInstance
                        instanceID          :: String,
                        deviceInstances     :: [DeviceInstance],
                        edgeInstances       :: [EdgeInstance]
-                   }
+                   } deriving Eq
 
 instance Show GraphInstance where
     show g = "GraphInstance\n" ++
@@ -118,19 +119,19 @@ instance Show GraphInstance where
 
 data DeviceInstance = DeviceInstance
                     {
-                        deviceType :: String,
-                        deviceID   :: String
-                    }
+                        deviceType         :: String,
+                        deviceInstanceID   :: String
+                    } deriving Eq
 
 instance Show DeviceInstance where
     show d = "DeviceInstance\n" ++
              "        type = " ++ deviceType d ++ "\n" ++
-             "        id = " ++ deviceID d ++ "\n"
+             "        id = " ++ deviceInstanceID d ++ "\n"
 
 data EdgeInstance = EdgeInstance
                   {
                       path :: String
-                  }
+                  } deriving Eq
 
 instance Show EdgeInstance where
     show e = "EdgeInstance\n" ++
