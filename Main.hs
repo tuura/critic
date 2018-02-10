@@ -1,23 +1,46 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Data.ByteString.Char8 (pack, unpack)
+import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Either
 
 import Text.XML.Pugi hiding (getName, getValue)
 import qualified Text.XML.Pugi as Pugi
 
 import Types
+import Writer
 
 main = do
-    parsed <- parseFile (ParseConfig parseFull encodingAuto) "poets-n2.xml"
-    case root parsed of
+    original <- parseFile (ParseConfig parseFull encodingAuto) "poets-n2.xml"
+
+    let originalGraph = generateGraph $ firstChild original
+
+    case root original of
         Just x  -> do
             let r = generateGraph $ firstChild x
-            putStrLn $ show r
+            -- putStrLn $ show r
             case r of
-                Nothing -> putStrLn "Failed1"
-                Just y  -> putStrLn "Complete"
+                Nothing -> putStrLn "Failed"
+                Just y  -> do
+                            -- putStrLn "Complete1"
+                            graph <- writeXML y
+                            -- putStrLn $ B.unpack $ pretty (PrettyConfig "    " def def) graph
+                            prettyFile (PrettyConfig "    " def def) "text.xml" graph
         Nothing -> putStrLn "Failed2"
+
+    redone <- parseFile (ParseConfig parseFull encodingAuto) "text.xml"
+    let redoneGraph = generateGraph $ firstChild redone
+
+    case originalGraph of
+        (Just x) -> case redoneGraph of
+            (Just y) -> do
+                if (x == y)
+                    then putStrLn "graphs Equal"
+                    else putStrLn "graphs NOT equal"
+            (Nothing) -> putStrLn "Failed something"
+        (Nothing) -> putStrLn "Failed something else"
     putStrLn "Done"
 
 generateGraph :: Maybe Node -> Maybe Graph
