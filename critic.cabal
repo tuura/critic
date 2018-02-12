@@ -8,9 +8,26 @@ build-type:    Simple
 cabal-version: >=1.10
 
 library
+    hs-source-dirs:   src
+    exposed-modules:  Poets.Critic,
+                      Poets.Critic.Parser,
+                      Poets.Critic.Types,
+                      Poets.Critic.Writer
     build-depends:    base >= 4.8 && < 4.10,
                       pugixml,
-                      extra <= 1.6.3
+                      extra <= 1.6.3,
+                      bytestring == 0.10.*
     default-language: Haskell2010
     other-extensions: TypeFamilies
     GHC-options:      -Wall -fwarn-tabs
+
+executable critic
+    main-is:          Main.hs
+    build-depends:    base >= 4.8 && < 4.10,
+                      pugixml,
+                      extra <= 1.6.3,
+                      bytestring == 0.10.*,
+                      critic
+    other-extensions: TypeFamilies
+    default-language: Haskell2010
+    GHC-options:      -Wall -fno-warn-name-shadowing -fwarn-tabs -O2

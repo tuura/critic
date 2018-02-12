@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings, DataKinds #-}
 
-module Writer where
+module Poets.Critic.Writer where
 
 import Data.ByteString.Char8
 
 import Text.XML.Pugi (Document, MutableNode, NodeKind (..))
 import Text.XML.Pugi.Mutable hiding (path)
 
-import Types
+import Poets.Critic.Types
 
 writeXML :: Graph -> IO Document
 writeXML g = create $ \doc -> do
@@ -19,7 +19,7 @@ writeXML g = create $ \doc -> do
     getGraphTypeElement (graphType g) graph
     getGraphInstanceElement (graphInstance g) graph
 
-getGraphTypeElement :: GraphType -> MutableNode (Element) -> Modify ()
+getGraphTypeElement :: GraphType -> MutableNode ('Element) -> Modify ()
 getGraphTypeElement g graph = do
     gt <- appendElement "GraphType" graph
     appendAttr "id" (pack $ graphTypeID g) gt
@@ -28,7 +28,7 @@ getGraphTypeElement g graph = do
     dts <- appendElement "DeviceTypes" gt
     getDeviceTypesElements (deviceTypes g) dts
 
-getMessageTypesElements :: [MessageType] -> MutableNode (Element) -> Modify ()
+getMessageTypesElements :: [MessageType] -> MutableNode ('Element) -> Modify ()
 getMessageTypesElements [] _ = return ()
 getMessageTypesElements (m:ms) mts = do
     mt <- appendElement "MessageType" mts
@@ -36,7 +36,7 @@ getMessageTypesElements (m:ms) mts = do
     getMessageElements (message m) mt
     getMessageTypesElements ms mts
 
-getMessageElements :: Message -> MutableNode (Element) -> Modify ()
+getMessageElements :: Message -> MutableNode ('Element) -> Modify ()
 getMessageElements (Message [] []) _ = return ()
 getMessageElements (Message x []) mt = do
     m <- appendElement "Message" mt
@@ -51,7 +51,7 @@ getMessageElements (Message x y) mt = do
     s <- appendElement "Scalar" m
     appendAttrs [("name", pack x), ("type", pack y)] s
 
-getDeviceTypesElements :: [DeviceType] -> MutableNode (Element) -> Modify ()
+getDeviceTypesElements :: [DeviceType] -> MutableNode ('Element) -> Modify ()
 getDeviceTypesElements [] _ = return ()
 getDeviceTypesElements (d:ds) dts = do
     dt <- appendElement "DeviceType" dts
@@ -60,10 +60,10 @@ getDeviceTypesElements (d:ds) dts = do
     getInputPinElements (inputPins d) dt
     getOutputPinElements (outputPins d) dt
     rts <- appendElement "ReadyToSend" dt
-    appendCData (pack $ readyToSend d) rts
+    _ <- appendCData (pack $ readyToSend d) rts
     getDeviceTypesElements ds dts
 
-getStateElements :: [State] -> MutableNode (Element) -> Modify ()
+getStateElements :: [State] -> MutableNode ('Element) -> Modify ()
 getStateElements [] _ = return ()
 getStateElements (s:sts) dt = do
     state <- appendElement "State" dt
@@ -72,27 +72,27 @@ getStateElements (s:sts) dt = do
                  ("type", (pack $ stateType s))] scalar
     getStateElements sts dt
 
-getInputPinElements :: [InputPin] -> MutableNode (Element) -> Modify ()
+getInputPinElements :: [InputPin] -> MutableNode ('Element) -> Modify ()
 getInputPinElements [] _ = return ()
 getInputPinElements (i:is) dt = do
     pin <- appendElement "InputPin" dt
     appendAttrs [("name", (pack $ inputName i)),
                  ("messageTypeId", (pack $ iMessageTypeID i))] pin
     rec <- appendElement "OnReceive" pin
-    appendCData (pack $ onReceive i) rec
+    _ <- appendCData (pack $ onReceive i) rec
     getInputPinElements is dt
 
-getOutputPinElements :: [OutputPin] -> MutableNode (Element) -> Modify ()
+getOutputPinElements :: [OutputPin] -> MutableNode ('Element) -> Modify ()
 getOutputPinElements [] _ = return ()
 getOutputPinElements (o:os) dt = do
     pin <- appendElement "OutputPin" dt
     appendAttrs [("name", (pack $ outputName o)),
                  ("messageTypeId", (pack $ oMessageTypeID o))] pin
     send <- appendElement "OnSend" pin
-    appendCData (pack $ onSend o) send
+    _ <- appendCData (pack $ onSend o) send
     getOutputPinElements os dt
 
-getGraphInstanceElement :: GraphInstance -> MutableNode (Element) -> Modify ()
+getGraphInstanceElement :: GraphInstance -> MutableNode ('Element) -> Modify ()
 getGraphInstanceElement g graph = do
     gi <- appendElement "GraphInstance" graph
     appendAttrs [("graphTypeId", pack $ instanceGraphTypeID g),
@@ -102,7 +102,7 @@ getGraphInstanceElement g graph = do
     ei <- appendElement "EdgeInstances" gi
     getEdgeInstanceElements (edgeInstances g) ei
 
-getDeviceInstanceElements :: [DeviceInstance] -> MutableNode (Element) -> Modify ()
+getDeviceInstanceElements :: [DeviceInstance] -> MutableNode ('Element) -> Modify ()
 getDeviceInstanceElements [] _ = return ()
 getDeviceInstanceElements (d:ds) gi = do
     di <- appendElement "DevI" gi
@@ -110,7 +110,7 @@ getDeviceInstanceElements (d:ds) gi = do
                  ("id", pack $ deviceInstanceID d)] di
     getDeviceInstanceElements ds gi
 
-getEdgeInstanceElements :: [EdgeInstance] -> MutableNode (Element) -> Modify ()
+getEdgeInstanceElements :: [EdgeInstance] -> MutableNode ('Element) -> Modify ()
 getEdgeInstanceElements [] _ = return ()
 getEdgeInstanceElements (e:es) gi = do
     ei <- appendElement "EdgeI" gi

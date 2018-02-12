@@ -1,4 +1,4 @@
-module Types where
+module Poets.Critic.Types where
 
 data Graph = Graph
             {
