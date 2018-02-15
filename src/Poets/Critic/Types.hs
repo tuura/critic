@@ -1,4 +1,11 @@
-module Poets.Critic.Types where
+module Poets.Critic.Types (
+  Graph (..), GraphType (..),
+  MessageType (..), Message (..),
+  DeviceType (..), State (..),
+  InputPin (..), OutputPin (..),
+  GraphInstance (..), DeviceInstance (..),
+  EdgeInstance (..)
+  ) where
 
 data Graph = Graph
             {

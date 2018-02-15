@@ -1,13 +1,26 @@
 {-# LANGUAGE OverloadedStrings, DataKinds #-}
 
-module Poets.Critic.Writer where
+module Poets.Critic.Writer (
+    printXML, printXMLtoFile
+    )where
 
-import Data.ByteString.Char8
+import Data.ByteString.Char8 hiding (putStrLn)
+import qualified Data.ByteString.Lazy.Char8 as B
 
-import Text.XML.Pugi (Document, MutableNode, NodeKind (..))
+import Text.XML.Pugi hiding (path)
 import Text.XML.Pugi.Mutable hiding (path)
 
 import Poets.Critic.Types
+
+printXML :: Graph -> IO ()
+printXML g = do
+    doc <- writeXML g
+    B.putStrLn $ pretty (PrettyConfig "    " def def) doc
+
+printXMLtoFile :: Graph -> String -> IO ()
+printXMLtoFile g p = do
+    doc <- writeXML g
+    prettyFile (PrettyConfig "    " def def) p doc
 
 writeXML :: Graph -> IO Document
 writeXML g = create $ \doc -> do

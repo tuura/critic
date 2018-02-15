@@ -2,29 +2,21 @@
 
 module Main where
 
-import Text.XML.Pugi hiding (getName, getValue)
-
 import Poets.Critic.Parser
 import Poets.Critic.Writer
 
 main :: IO ()
 main = do
-    original <- parseGraph "fantasi-n2.xml"
 
-    let originalGraph = generateGraph $ firstChild original
+    original <- parseFile "fantasi-n2.xml"
+    let originalGraph = getGraph original
 
-    case root original of
-        Just x  -> do
-            let r = generateGraph $ firstChild x
-            case r of
-                Nothing -> putStrLn "Failed"
-                Just y  -> do
-                            graph <- writeXML y
-                            prettyFile (PrettyConfig "    " def def) "test.xml" graph
-        Nothing -> putStrLn "Failed2"
+    case getGraph original of
+        Nothing -> putStrLn "Failed"
+        Just y  -> printXMLtoFile y "test.xml"
 
-    redone <- parseFile (ParseConfig parseFull encodingAuto) "test.xml"
-    let redoneGraph = generateGraph $ firstChild redone
+    redone <- parseFile "test.xml"
+    let redoneGraph = getGraph redone
 
     case originalGraph of
         (Just x) -> case redoneGraph of

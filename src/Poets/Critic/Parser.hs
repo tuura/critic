@@ -1,18 +1,23 @@
-module Poets.Critic.Parser where
+module Poets.Critic.Parser (
+    getGraph, parseFile
+    ) where
 
 import Data.ByteString.Char8 (pack, unpack)
 
-import Text.XML.Pugi hiding (getName, getValue)
+import Text.XML.Pugi hiding (getName, getValue, parseFile)
 import qualified Text.XML.Pugi as Pugi
 
 import Poets.Critic.Types
 
-parseGraph :: String -> IO Document
-parseGraph p = parseFile (ParseConfig parseFull encodingAuto) p
+getGraph :: Document -> Maybe Graph
+getGraph d = generateGraph $ firstChild d
+
+parseFile :: String -> IO Document
+parseFile p = Pugi.parseFile (ParseConfig parseFull encodingAuto) p
 
 generateGraph :: Maybe Node -> Maybe Graph
 generateGraph (Nothing) = Nothing
-generateGraph (Just n) = case getName n of
+generateGraph (Just n)  = case getName n of
     "xml"     -> generateGraph $ nextSibling n
     "Graphs"  -> Just (Graph (getAttribute "xmlns" n)
                             (getGraphType $ firstChild n)
