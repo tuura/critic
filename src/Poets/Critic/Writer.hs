@@ -7,7 +7,7 @@ module Poets.Critic.Writer (
 import Data.ByteString.Char8 hiding (putStrLn)
 import qualified Data.ByteString.Lazy.Char8 as B
 
-import Text.XML.Pugi hiding (path)
+import Text.XML.Pugi hiding (path, parseFile)
 import Text.XML.Pugi.Mutable hiding (path)
 
 import Poets.Critic.Types

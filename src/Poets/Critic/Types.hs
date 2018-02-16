@@ -85,9 +85,9 @@ instance Show State where
 
 data InputPin = InputPin
               {
-                  inputName     :: String,
+                  inputName      :: String,
                   iMessageTypeID :: String,
-                  onReceive     :: String
+                  onReceive      :: String
               } deriving Eq
 
 instance Show InputPin where

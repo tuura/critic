@@ -12,6 +12,7 @@ library
     exposed-modules:  Poets.Critic,
                       Poets.Critic.Parser,
                       Poets.Critic.Types,
+                      Poets.Critic.View,
                       Poets.Critic.Writer
     build-depends:    base >= 4.8 && < 4.10,
                       pugixml,
