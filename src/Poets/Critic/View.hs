@@ -61,9 +61,6 @@ viewMessageTypesWithID g i
     mts = getMessageTypes g
     mtsWithID = filter (\(MessageType n _) -> n == i) mts
 
-getMessageTypes :: Graph -> [MessageType]
-getMessageTypes g = messageTypes $ graphType g
-
 viewMessages :: Graph -> IO ()
 viewMessages = viewMessageTypes
 
@@ -88,9 +85,6 @@ getDeviceTypesInfo dts =
                    ++ (getInputPinsInfo $ inputPins dt)
                    ++ (getOutputPinsInfo $ outputPins dt)
                    ++ ["Code run when ready to send: " ++ readyToSend dt]) dts
-
-getDeviceTypes :: Graph -> [DeviceType]
-getDeviceTypes g = deviceTypes $ graphType g
 
 getStatesInfo :: [State] -> [String]
 getStatesInfo sts =
@@ -165,9 +159,6 @@ getGraphInstanceInfo gi =
     ldi = length $ deviceInstances gi
     lei = length $ edgeInstances gi
 
-getGraphInstance :: Graph -> GraphInstance
-getGraphInstance g = graphInstance g
-
 viewDeviceInstances :: Graph -> IO ()
 viewDeviceInstances g = putStrLn $ unlines $ getDeviceInstancesInfo dis
   where
@@ -196,9 +187,6 @@ getDeviceInstancesInfo dis =
     map (\di -> "Device ID: " ++ deviceInstanceID di ++
                 " Device type: " ++ deviceType di) dis
 
-getDeviceInstances :: Graph -> [DeviceInstance]
-getDeviceInstances g = deviceInstances $ getGraphInstance g
-
 viewEdgeInstances :: Graph -> IO ()
 viewEdgeInstances g = putStrLn $ unlines $ getEdgeInstancesInfo eis
   where
@@ -207,6 +195,3 @@ viewEdgeInstances g = putStrLn $ unlines $ getEdgeInstancesInfo eis
 getEdgeInstancesInfo :: [EdgeInstance] -> [String]
 getEdgeInstancesInfo eis =
     map (\ei -> "Path: " ++ path ei) eis
-
-getEdgeInstances :: Graph -> [EdgeInstance]
-getEdgeInstances g = edgeInstances $ getGraphInstance g

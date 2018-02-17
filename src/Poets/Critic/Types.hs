@@ -4,13 +4,16 @@ module Poets.Critic.Types (
   DeviceType (..), State (..),
   InputPin (..), OutputPin (..),
   GraphInstance (..), DeviceInstance (..),
-  EdgeInstance (..)
+  EdgeInstance (..), getGraphType,
+  getGraphInstance, getMessageTypes,
+  getDeviceTypes, getDeviceInstances,
+  getEdgeInstances
   ) where
 
 data Graph = Graph
             {
-                xmlns     :: String,
-                graphType :: GraphType,
+                xmlns         :: String,
+                graphType     :: GraphType,
                 graphInstance :: GraphInstance
             } deriving Eq
 
@@ -19,6 +22,12 @@ instance Show Graph where
              "    xmlns = " ++ xmlns g ++ "\n" ++
              "    " ++ (show $ graphType g) ++ "\n" ++
              "    " ++ (show $ graphInstance g)
+
+getGraphType :: Graph -> GraphType
+getGraphType g = graphType g
+
+getGraphInstance :: Graph -> GraphInstance
+getGraphInstance g = graphInstance g
 
 data GraphType = GraphType
                {
@@ -32,6 +41,12 @@ instance Show GraphType where
              "    id = " ++ graphTypeID g ++ "\n" ++
              "        " ++ (show $ messageTypes g) ++ "\n" ++
              "        " ++ (show $ deviceTypes g)
+
+getMessageTypes :: Graph -> [MessageType]
+getMessageTypes g = messageTypes $ graphType g
+
+getDeviceTypes :: Graph -> [DeviceType]
+getDeviceTypes g = deviceTypes $ graphType g
 
 data MessageType = MessageType
                   {
@@ -124,6 +139,9 @@ instance Show GraphInstance where
              "    " ++ (show $ deviceInstances g) ++ "\n" ++
              "    " ++ (show $ edgeInstances g) ++ "\n"
 
+getDeviceInstances :: Graph -> [DeviceInstance]
+getDeviceInstances g = deviceInstances $ getGraphInstance g
+
 data DeviceInstance = DeviceInstance
                     {
                         deviceType         :: String,
@@ -143,3 +161,6 @@ data EdgeInstance = EdgeInstance
 instance Show EdgeInstance where
     show e = "EdgeInstance\n" ++
              "        path = " ++ path e ++ "\n"
+
+getEdgeInstances :: Graph -> [EdgeInstance]
+getEdgeInstances g = edgeInstances $ getGraphInstance g
