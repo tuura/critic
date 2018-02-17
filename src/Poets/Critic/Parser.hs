@@ -7,7 +7,8 @@ import Data.ByteString.Char8 (pack, unpack)
 import Text.XML.Pugi hiding (getName, getValue, parseFile)
 import qualified Text.XML.Pugi as Pugi
 
-import Poets.Critic.Types
+import Poets.Critic.Types hiding (getGraphInstance, getDeviceInstances,
+                                  getEdgeInstances, getGraphType)
 
 getGraph :: Document -> Maybe Graph
 getGraph d = generateGraph $ firstChild d
