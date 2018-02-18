@@ -2,37 +2,21 @@
 
 module Main where
 
-import Poets.Critic.Manipulate
-import Poets.Critic.Parser
-import Poets.Critic.Writer
-import Poets.Critic.View
+import Poets.Critic
 
 main :: IO ()
 main = do
 
     original <- parseFile "fantasi-n2.xml"
-    let originalGraph = getGraph original
 
     case getGraph original of
         Nothing -> putStrLn "Failed"
-        Just y  -> printXMLtoFile y "test.xml"
-
-    redone <- parseFile "test.xml"
-    let redoneGraph = getGraph redone
-
-    case originalGraph of
-        (Just x) -> do
-            -- viewStats x
-            let new = addMessageType x "test"
-                new1 = addMessageToMessageType new "test-name" "test-type" "tesst"
-            viewMessages x
-            viewMessages new1
-            case redoneGraph of
-                (Just y) -> do
-                    if (x == y)
-                        then putStrLn "graphs Equal"
-                        else putStrLn "graphs NOT equal"
-                (Nothing) -> putStrLn "Failed something"
-        (Nothing) -> putStrLn "Failed something else"
-
-
+        Just g  -> do -- printXMLtoFile y "test.xml"
+            viewStats g
+            putStrLn "\nAdding a device instance\n"
+            let g1 = addDeviceInstance g "000088" "flipflop"
+            viewStats g1
+            putStrLn "\nAdding two edge instances for this new device instance\n"
+            let g2 = addEdgeInstance g1 "000088:in-000032:out"
+            let g3 = addEdgeInstance g2 "000056:in-000088:out"
+            viewStats g3

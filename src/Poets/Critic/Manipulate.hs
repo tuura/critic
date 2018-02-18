@@ -1,4 +1,10 @@
-module Poets.Critic.Manipulate where
+module Poets.Critic.Manipulate (
+    addMessageType, addMessageToMessageType,
+    addDeviceType, addStateToDeviceType,
+    addInputPinToDeviceType, addOutputPinToDeviceType,
+    addReadyToSendToDeviceType, addDeviceInstance,
+    addEdgeInstance
+    ) where
 
 import Poets.Critic.Types
 import Data.List
@@ -114,3 +120,26 @@ getDeviceTypesOfID :: [DeviceType] -> String -> [DeviceType]
 getDeviceTypesOfID dts i = dtsWithID
   where
     dtsWithID = filter (\(DeviceType n _ _ _ _) -> n == i) dts
+
+-- Needs a check that the device type given exists
+-- Needs a check taht the device ID is not already taken
+-- Needs an output for when this occurs
+addDeviceInstance :: Graph -> String -> String -> Graph
+addDeviceInstance g i t = Graph (xmlns g) (graphType g) (newGi gi)
+  where
+    gi = getGraphInstance g
+    dis = getDeviceInstances g
+    newDi = DeviceInstance t i
+    newDis = dis ++ [newDi]
+    newGi (GraphInstance m n _ e) = GraphInstance m n newDis e
+
+-- Needs a check that the path does not already exist
+-- Paths could possibly be parsed further, separating into in and out
+addEdgeInstance :: Graph -> String -> Graph
+addEdgeInstance g p = Graph (xmlns g) (graphType g) (newGi gi)
+  where
+    gi = getGraphInstance g
+    eis = getEdgeInstances g
+    newEi = EdgeInstance p
+    newEis = eis ++ [newEi]
+    newGi (GraphInstance m n d _) = GraphInstance m n d newEis
