@@ -119,7 +119,7 @@ getDeviceInstanceElements :: [DeviceInstance] -> MutableNode ('Element) -> Modif
 getDeviceInstanceElements [] _ = return ()
 getDeviceInstanceElements (d:ds) gi = do
     di <- appendElement "DevI" gi
-    appendAttrs [("type", pack $ deviceType d),
+    appendAttrs [("type", pack $ deviceID $ deviceType d),
                  ("id", pack $ deviceInstanceID d)] di
     getDeviceInstanceElements ds gi
 
@@ -127,5 +127,6 @@ getEdgeInstanceElements :: [EdgeInstance] -> MutableNode ('Element) -> Modify ()
 getEdgeInstanceElements [] _ = return ()
 getEdgeInstanceElements (e:es) gi = do
     ei <- appendElement "EdgeI" gi
-    appendAttr "path" (pack $ inNode e ++ ":in-" ++ outNode e ++ ":out") ei
+    appendAttr "path" (pack $ (deviceInstanceID $ inNode e) ++ ":in-"
+                           ++ (deviceInstanceID $ outNode e) ++ ":out") ei
     getEdgeInstanceElements es gi

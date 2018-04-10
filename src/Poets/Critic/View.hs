@@ -171,7 +171,7 @@ viewDeviceInstancesOfType g t
     | otherwise = putStrLn $ unlines $ getDeviceInstancesInfo disOfType
   where
     dis = getDeviceInstances g
-    disOfType = filter (\(DeviceInstance n _) -> n == t) dis
+    disOfType = filter (\(DeviceInstance n _) -> deviceID n == t) dis
 
 viewDeviceInstanceWithID :: Graph -> String -> IO ()
 viewDeviceInstanceWithID g i
@@ -185,7 +185,7 @@ viewDeviceInstanceWithID g i
 getDeviceInstancesInfo :: [DeviceInstance] -> [String]
 getDeviceInstancesInfo dis =
     map (\di -> "Device ID: " ++ deviceInstanceID di ++
-                " Device type: " ++ deviceType di) dis
+                " Device type: " ++ (deviceID $ deviceType di)) dis
 
 viewEdgeInstances :: Graph -> IO ()
 viewEdgeInstances g = putStrLn $ unlines $ getEdgeInstancesInfo eis
@@ -194,4 +194,5 @@ viewEdgeInstances g = putStrLn $ unlines $ getEdgeInstancesInfo eis
 
 getEdgeInstancesInfo :: [EdgeInstance] -> [String]
 getEdgeInstancesInfo eis =
-    map (\ei -> "Path: " ++ inNode ei ++ ":in-" ++ outNode ei ++ ":out") eis
+    map (\ei -> "Path: " ++ (deviceInstanceID $ inNode ei) ++ ":in-"
+                         ++ (deviceInstanceID $ outNode ei) ++ ":out") eis

@@ -21,10 +21,11 @@ generateGraph :: Maybe Node -> Maybe Graph
 generateGraph (Nothing) = Nothing
 generateGraph (Just n)  = case getName n of
     "xml"     -> generateGraph $ nextSibling n
-    "Graphs"  -> Just (Graph (getAttribute "xmlns" n)
-                            (getGraphType $ firstChild n)
-                            (getGraphInstance $ firstChild n))
+    "Graphs"  -> Just (Graph (getAttribute "xmlns" n) gt gi)
     _ -> Nothing
+  where
+    gt = getGraphType $ firstChild n
+    gi = getGraphInstance (firstChild n) gt
 
 getGraphType :: Maybe Node -> GraphType
 getGraphType Nothing = GraphType "" [] []
@@ -107,42 +108,46 @@ getDevices (Just p)
         Nothing -> ""
     getRTS n = filter (\c -> (getName c) == "ReadyToSend") (listChildren n)
 
-getGraphInstance :: Maybe Node -> GraphInstance
-getGraphInstance Nothing = GraphInstance "" "" [] []
-getGraphInstance (Just n)
+getGraphInstance :: Maybe Node -> GraphType -> GraphInstance
+getGraphInstance Nothing _ = GraphInstance "" "" [] []
+getGraphInstance (Just n) gt
     | getName n == "GraphInstance" = GraphInstance
                                          (getAttribute "graphTypeId" n)
                                          (getAttribute "id" n)
-                                         (getDeviceInstances $ firstChild n)
-                                         (getEdgeInstances $ firstChild n)
-    | otherwise = getGraphInstance $ nextSibling n
+                                         dis eis
+    | otherwise = getGraphInstance (nextSibling n) gt
+  where
+    dis = getDeviceInstances (firstChild n) (deviceTypes gt)
+    eis = getEdgeInstances (firstChild n) dis
 
-getDeviceInstances :: Maybe Node -> [DeviceInstance]
-getDeviceInstances Nothing = []
-getDeviceInstances (Just n)
+getDeviceInstances :: Maybe Node -> [DeviceType] -> [DeviceInstance]
+getDeviceInstances Nothing _ = []
+getDeviceInstances (Just n) dts
     | getName n == "DeviceInstances" = map (\c -> DeviceInstance
-                                                      (getAttribute "type" c)
+                                                      (findDeviceType (di c) dts)
                                                       (getAttribute "id" c)
                                            ) (listChildren n)
-    | otherwise = getDeviceInstances $ nextSibling n
+    | otherwise = getDeviceInstances (nextSibling n) dts
+  where
+    di c = getAttribute "type" c
 
-getEdgeInstances :: Maybe Node -> [EdgeInstance]
-getEdgeInstances Nothing = []
-getEdgeInstances (Just n)
-    | getName n == "EdgeInstances" = map (\c -> parsePath c
+getEdgeInstances :: Maybe Node -> [DeviceInstance] -> [EdgeInstance]
+getEdgeInstances Nothing _ = []
+getEdgeInstances (Just n) dis
+    | getName n == "EdgeInstances" = map (\c -> parsePath c dis
                                          ) (listChildren n)
-    | otherwise = getEdgeInstances $ nextSibling n
+    | otherwise = getEdgeInstances (nextSibling n) dis
 
-parsePath :: Node -> EdgeInstance
-parsePath pth = EdgeInstance i o
+parsePath :: Node -> [DeviceInstance] -> EdgeInstance
+parsePath pth dis = EdgeInstance i o
   where
     p = getAttribute "path" pth
     (Just first) = elemIndex ':' p
-    i = take (first) p
+    i = findDeviceInstance (take first p) dis
     (Just sp) = elemIndex '-' p
     split = drop (sp + 1) p
     (Just second) = elemIndex ':' split
-    o = take second split
+    o = findDeviceInstance (take second split) dis
 
 getAttribute :: String -> Node -> String
 getAttribute att n = case Pugi.attribute (pack att) n of

@@ -6,9 +6,12 @@ module Poets.Critic.Types (
   GraphInstance (..), DeviceInstance (..),
   EdgeInstance (..), getGraphType,
   getGraphInstance, getMessageTypes,
-  getDeviceTypes, getDeviceInstances,
+  getDeviceTypes, findDeviceType,
+  getDeviceInstances, findDeviceInstance,
   getEdgeInstances
   ) where
+
+import Data.List
 
 data Graph = Graph
             {
@@ -87,6 +90,15 @@ instance Show DeviceType where
              "            " ++ (show $ outputPins d) ++ "\n" ++
              "            ReadyToSend = " ++ readyToSend d ++ "\n"
 
+findDeviceType :: String -> [DeviceType] -> DeviceType
+findDeviceType t dts = dt index
+  where
+    index = elemIndex t typeIDs
+    typeIDs = map deviceID dts
+    dt (Just i) = dts !! i
+    dt (Nothing) = DeviceType ("No device of type \"" ++ t ++ "\"")
+                              [] [] [] []
+
 data State = State
            {
                stateName :: String,
@@ -142,26 +154,36 @@ instance Show GraphInstance where
 getDeviceInstances :: Graph -> [DeviceInstance]
 getDeviceInstances g = deviceInstances $ getGraphInstance g
 
+findDeviceInstance :: String -> [DeviceInstance] -> DeviceInstance
+findDeviceInstance i dis = di index
+  where
+    index = elemIndex i instanceIDs
+    instanceIDs = map deviceInstanceID dis
+    di (Just x) = dis !! x
+    di (Nothing) = DeviceInstance (DeviceType ("No instance of ID \"" ++ i ++ "\"")
+                                   [] [] [] [] ) []
+
 data DeviceInstance = DeviceInstance
                     {
-                        deviceType         :: String,
+                        deviceType         :: DeviceType,
                         deviceInstanceID   :: String
                     } deriving Eq
 
 instance Show DeviceInstance where
     show d = "DeviceInstance\n" ++
-             "        type = " ++ deviceType d ++ "\n" ++
+             "        type = " ++ (deviceID $ deviceType d) ++ "\n" ++
              "        id = " ++ deviceInstanceID d ++ "\n"
 
 data EdgeInstance = EdgeInstance
                   {
-                      inNode :: String,
-                      outNode :: String
+                      inNode :: DeviceInstance,
+                      outNode :: DeviceInstance
                   } deriving Eq
 
 instance Show EdgeInstance where
     show e = "EdgeInstance\n" ++
-             "        path = " ++ inNode e ++ ":in-" ++ outNode e ++ ":out\n"
+             "        path = " ++ (deviceInstanceID $ inNode e) ++ ":in-"
+                               ++ (deviceInstanceID $ outNode e) ++ ":out\n"
 
 getEdgeInstances :: Graph -> [EdgeInstance]
 getEdgeInstances g = edgeInstances $ getGraphInstance g

@@ -255,7 +255,9 @@ addDeviceInstance g i t = Graph (xmlns g) (graphType g) (newGi gi)
   where
     gi = getGraphInstance g
     dis = getDeviceInstances g
-    newDi = DeviceInstance t i
+    dts = getDeviceTypes g
+    newDt = findDeviceType t dts
+    newDi = DeviceInstance newDt i
     newDis = dis ++ [newDi]
     newGi (GraphInstance m n _ e) = GraphInstance m n newDis e
 
@@ -284,9 +286,12 @@ addEdgeInstance g i o = Graph (xmlns g) (graphType g) (newGi gi)
   where
     gi = getGraphInstance g
     eis = getEdgeInstances g
-    newEi = EdgeInstance i o
+    dis = getDeviceInstances g
+    newEi = EdgeInstance newIn newOut
     newEis = eis ++ [newEi]
     newGi (GraphInstance m n d _) = GraphInstance m n d newEis
+    newIn  = findDeviceInstance i dis
+    newOut = findDeviceInstance o dis
 
 removeEdgeInstance :: Graph -> String -> Graph
 removeEdgeInstance g p
@@ -300,17 +305,21 @@ removeEdgeInstance g p
     newGi (GraphInstance m n d _) = GraphInstance m n  d newEis
 
 getEdgeInstancesWithPath :: [EdgeInstance] -> String -> [EdgeInstance]
-getEdgeInstancesWithPath eis p = eisWithPath
+getEdgeInstancesWithPath eis p = usefulEis
   where
-    desired = parsePath p
-    eisWithPath = filter (== desired) eis
+    eisWithPath = filter (== p) asPaths
+    is = elemIndices p eisWithPath
+    usefulEis = map (eis !!) is
+    asPaths = map (\e -> (deviceInstanceID $ inNode e) ++ ":in-"
+               ++ (deviceInstanceID $ outNode e) ++ ":out\n")
+                eis
 
-parsePath :: String -> EdgeInstance
-parsePath p = EdgeInstance i o
-  where
-    (Just first) = elemIndex ':' p
-    i = take (first) p
-    (Just sp) = elemIndex '-' p
-    split = drop (sp + 1) p
-    (Just second) = elemIndex ':' split
-    o = take second split
+-- parsePath :: String -> [DeviceInstance] -> EdgeInstance
+-- parsePath p dis = EdgeInstance i o
+--   where
+--     (Just first) = elemIndex ':' p
+--     i = findDeviceInstance (take first p) dis
+--     (Just sp) = elemIndex '-' p
+--     split = drop (sp + 1) p
+--     (Just second) = elemIndex ':' split
+--     o = findDeviceInstance (take second split) dis
