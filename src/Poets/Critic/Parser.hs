@@ -3,6 +3,7 @@ module Poets.Critic.Parser (
     ) where
 
 import Data.ByteString.Char8 (pack, unpack)
+import Data.List
 
 import Text.XML.Pugi hiding (getName, getValue, parseFile)
 import qualified Text.XML.Pugi as Pugi
@@ -128,10 +129,20 @@ getDeviceInstances (Just n)
 getEdgeInstances :: Maybe Node -> [EdgeInstance]
 getEdgeInstances Nothing = []
 getEdgeInstances (Just n)
-    | getName n == "EdgeInstances" = map (\c -> EdgeInstance
-                                                    (getAttribute "path" c)
+    | getName n == "EdgeInstances" = map (\c -> parsePath c
                                          ) (listChildren n)
     | otherwise = getEdgeInstances $ nextSibling n
+
+parsePath :: Node -> EdgeInstance
+parsePath pth = EdgeInstance i o
+  where
+    p = getAttribute "path" pth
+    (Just first) = elemIndex ':' p
+    i = take (first) p
+    (Just sp) = elemIndex '-' p
+    split = drop (sp + 1) p
+    (Just second) = elemIndex ':' split
+    o = take second split
 
 getAttribute :: String -> Node -> String
 getAttribute att n = case Pugi.attribute (pack att) n of

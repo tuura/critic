@@ -127,5 +127,5 @@ getEdgeInstanceElements :: [EdgeInstance] -> MutableNode ('Element) -> Modify ()
 getEdgeInstanceElements [] _ = return ()
 getEdgeInstanceElements (e:es) gi = do
     ei <- appendElement "EdgeI" gi
-    appendAttr "path" (pack $ path e) ei
+    appendAttr "path" (pack $ inNode e ++ ":in-" ++ outNode e ++ ":out") ei
     getEdgeInstanceElements es gi

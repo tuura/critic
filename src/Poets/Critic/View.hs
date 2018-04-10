@@ -194,4 +194,4 @@ viewEdgeInstances g = putStrLn $ unlines $ getEdgeInstancesInfo eis
 
 getEdgeInstancesInfo :: [EdgeInstance] -> [String]
 getEdgeInstancesInfo eis =
-    map (\ei -> "Path: " ++ path ei) eis
+    map (\ei -> "Path: " ++ inNode ei ++ ":in-" ++ outNode ei ++ ":out") eis

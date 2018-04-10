@@ -155,12 +155,13 @@ instance Show DeviceInstance where
 
 data EdgeInstance = EdgeInstance
                   {
-                      path :: String
+                      inNode :: String,
+                      outNode :: String
                   } deriving Eq
 
 instance Show EdgeInstance where
     show e = "EdgeInstance\n" ++
-             "        path = " ++ path e ++ "\n"
+             "        path = " ++ inNode e ++ ":in-" ++ outNode e ++ ":out\n"
 
 getEdgeInstances :: Graph -> [EdgeInstance]
 getEdgeInstances g = edgeInstances $ getGraphInstance g

@@ -279,27 +279,38 @@ getDeviceInstancesWithID dis i = disWithID
 
 -- Needs a check that the path does not already exist
 -- Paths could possibly be parsed further, separating into in and out
-addEdgeInstance :: Graph -> String -> Graph
-addEdgeInstance g p = Graph (xmlns g) (graphType g) (newGi gi)
+addEdgeInstance :: Graph -> String -> String -> Graph
+addEdgeInstance g i o = Graph (xmlns g) (graphType g) (newGi gi)
   where
     gi = getGraphInstance g
     eis = getEdgeInstances g
-    newEi = EdgeInstance p
+    newEi = EdgeInstance i o
     newEis = eis ++ [newEi]
     newGi (GraphInstance m n d _) = GraphInstance m n d newEis
 
 removeEdgeInstance :: Graph -> String -> Graph
 removeEdgeInstance g p
-    | (length $ getEdgeInstancesWithID eis p) /= 1 = g
+    | (length $ getEdgeInstancesWithPath eis p) /= 1 = g
     | otherwise = Graph (xmlns g) (graphType g) (newGi gi)
   where
     gi = getGraphInstance g
     eis = getEdgeInstances g
-    eiWithID = head $ getEdgeInstancesWithID eis p
+    eiWithID = head $ getEdgeInstancesWithPath eis p
     newEis = delete eiWithID eis
-    newGi (GraphInstance m n d _) = GraphInstance m n d newEis
+    newGi (GraphInstance m n d _) = GraphInstance m n  d newEis
 
-getEdgeInstancesWithID :: [EdgeInstance] -> String -> [EdgeInstance]
-getEdgeInstancesWithID eis i = eisWithID
+getEdgeInstancesWithPath :: [EdgeInstance] -> String -> [EdgeInstance]
+getEdgeInstancesWithPath eis p = eisWithPath
   where
-    eisWithID = filter (\(EdgeInstance n) -> n == i) eis
+    desired = parsePath p
+    eisWithPath = filter (== desired) eis
+
+parsePath :: String -> EdgeInstance
+parsePath p = EdgeInstance i o
+  where
+    (Just first) = elemIndex ':' p
+    i = take (first) p
+    (Just sp) = elemIndex '-' p
+    split = drop (sp + 1) p
+    (Just second) = elemIndex ':' split
+    o = take second split
