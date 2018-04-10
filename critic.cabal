@@ -10,6 +10,7 @@ cabal-version: >=1.10
 library
     hs-source-dirs:   src
     exposed-modules:  Poets.Critic,
+                      Poets.Critic.Format,
                       Poets.Critic.Manipulate,
                       Poets.Critic.Parser,
                       Poets.Critic.Types,
