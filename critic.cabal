@@ -15,7 +15,7 @@ library
                       Poets.Critic.Types,
                       Poets.Critic.View,
                       Poets.Critic.Writer,
-                      Poets.Formats.GraphAlgebra
+                      Poets.Graph.GraphAlgebra
     build-depends:    base >= 4.8 && < 4.10,
                       pugixml,
                       extra <= 1.6.3,

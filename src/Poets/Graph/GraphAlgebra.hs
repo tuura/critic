@@ -1,4 +1,4 @@
-module Poets.Formats.GraphAlgebra where
+module Poets.Graph.GraphAlgebra where
 
 import Data.List
 
