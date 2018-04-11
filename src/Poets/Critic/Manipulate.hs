@@ -5,9 +5,10 @@ module Poets.Critic.Manipulate (
     addStateToDeviceType, removeStateFromDeviceType,
     addInputPinToDeviceType, removeInputPinFromDeviceType,
     replaceOnReceiveOfInputPinOfDeviceType,
+    addToOnReceiveOfInputPinOfDeviceType,
     addOutputPinToDeviceType, removeOutputPinFromDeviceType,
-    replaceOnSendOfOutputPinOfDeviceType,
-    replaceReadyToSendOfDeviceType,
+    replaceOnSendOfOutputPinOfDeviceType, addToOnSendOfOutputPinOfDeviceType,
+    replaceReadyToSendOfDeviceType, addToReadyToSendOfDeviceType,
     addDeviceInstance, removeDeviceInstance,
     addEdgeInstance, removeEdgeInstance
     ) where
@@ -233,6 +234,18 @@ replaceOnReceiveOfInputPinOfDeviceType g i dtid c
     newDts = (delete dtWithID dts) ++ [newDt dtWithID]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
+addToOnReceiveOfInputPinOfDeviceType :: Graph -> String -> String -> String -> Graph
+addToOnReceiveOfInputPinOfDeviceType g i dtid c
+    | (length $ getDeviceTypesOfID dts dtid) /= 1 = g
+    | (length $ getInputPinsWithName is i) /= 1 = g
+    | otherwise = replaceOnReceiveOfInputPinOfDeviceType g i dtid newCode
+  where
+    is = inputPins dtWithID
+    dts = getDeviceTypes g
+    dtWithID = head $ getDeviceTypesOfID dts dtid
+    iWithID = head $ getInputPinsWithName is i
+    newCode = onReceive iWithID ++ c
+
 -- Needs a check that the output pin doesn't already exist
 -- Currently returns the original graph if the DeviceType doesn't exist
 -- Needs to output an error when this occurs
@@ -291,11 +304,23 @@ replaceOnSendOfOutputPinOfDeviceType g o dtid c
     newDts = (delete dtWithID dts) ++ [newDt dtWithID]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
+addToOnSendOfOutputPinOfDeviceType :: Graph -> String -> String -> String -> Graph
+addToOnSendOfOutputPinOfDeviceType g o dtid c
+    | (length $ getDeviceTypesOfID dts dtid) /= 1 = g
+    | (length $ getOutputPinsWithName os o) /= 1 = g
+    | otherwise = replaceOnSendOfOutputPinOfDeviceType g o dtid newCode
+  where
+    os = outputPins dtWithID
+    dts = getDeviceTypes g
+    dtWithID = head $ getDeviceTypesOfID dts dtid
+    oWithID = head $ getOutputPinsWithName os o
+    newCode = onSend oWithID ++ c
+
 -- Needs a check that the ready to send of this device doesn't already exist
 -- Currently returns the original graph if the DeviceType doesn't exist
 -- Needs to output an error when this occurs
 replaceReadyToSendOfDeviceType :: Graph -> String -> String -> Graph
-replaceReadyToSendOfDeviceType g rts dtid
+replaceReadyToSendOfDeviceType g dtid rts
     | (length $ getDeviceTypesOfID dts dtid) /= 1 = g
     | otherwise = Graph (xmlns g) newGt (graphInstance g)
   where
@@ -305,6 +330,15 @@ replaceReadyToSendOfDeviceType g rts dtid
     newDt (DeviceType nm ps ss ins outs _) = DeviceType nm ps ss ins outs rts
     newDts = (delete dtWithID dts) ++ [newDt dtWithID]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
+
+addToReadyToSendOfDeviceType :: Graph -> String -> String -> Graph
+addToReadyToSendOfDeviceType g dtid rts
+    | (length $ getDeviceTypesOfID dts dtid) /= 1 = g
+    | otherwise = replaceReadyToSendOfDeviceType g dtid newRts
+  where
+    dts = getDeviceTypes g
+    dtWithID = head $ getDeviceTypesOfID dts dtid
+    newRts = readyToSend dtWithID ++ rts
 
 getDeviceTypesOfID :: [DeviceType] -> String -> [DeviceType]
 getDeviceTypesOfID dts i = dtsWithID
