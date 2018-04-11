@@ -30,3 +30,13 @@ main = do
             -- printXML g3
             -- putStrLn "Output as graph algebra"
             -- putStrLn $ convertToAlgebra g
+
+    -- TODO: Add property of "First"
+    --       Add "rts = first" in  "__init__"
+    --       Add output details to onReceive
+    --       Generate random selection of first device.
+    --       Allow option of first device
+    --       Allow selection of file to be worked.
+    --       Generate as binary to be used with tinsel/poets-ecosystem
+    --       Add testing of this
+
