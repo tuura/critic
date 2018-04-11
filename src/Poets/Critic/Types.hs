@@ -1,7 +1,7 @@
 module Poets.Critic.Types (
   Graph (..), GraphType (..),
   MessageType (..), Message (..),
-  DeviceType (..), State (..),
+  DeviceType (..), Property (..), State (..),
   InputPin (..), OutputPin (..),
   GraphInstance (..), DeviceInstance (..),
   EdgeInstance (..), getGraphType,
@@ -76,6 +76,7 @@ instance Show Message where
 data DeviceType = DeviceType
                 {
                     deviceID     :: String,
+                    properties   :: [Property],
                     states       :: [State],
                     inputPins    :: [InputPin],
                     outputPins   :: [OutputPin],
@@ -97,7 +98,20 @@ findDeviceType t dts = dt index
     typeIDs = map deviceID dts
     dt (Just i) = dts !! i
     dt (Nothing) = DeviceType ("No device of type \"" ++ t ++ "\"")
-                              [] [] [] []
+                              [] [] [] [] []
+
+data Property = Property
+              {
+                  propertyType    :: String,
+                  propertyName    :: String,
+                  propertyDefault :: String
+              } deriving Eq
+
+instance Show Property where
+  show p = "Property\n" ++
+           "          " ++ propertyType p ++ "\n" ++
+           "          " ++ propertyName p ++ "\n" ++
+           "          " ++ propertyDefault p ++ "\n"
 
 data State = State
            {
@@ -161,7 +175,7 @@ findDeviceInstance i dis = di index
     instanceIDs = map deviceInstanceID dis
     di (Just x) = dis !! x
     di (Nothing) = DeviceInstance (DeviceType ("No instance of ID \"" ++ i ++ "\"")
-                                   [] [] [] [] ) []
+                                   [] [] [] [] []) []
 
 data DeviceInstance = DeviceInstance
                     {

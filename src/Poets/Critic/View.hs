@@ -3,8 +3,11 @@ module Poets.Critic.View (
     viewGraphInstance, viewMessageTypes,
     viewMessageTypesWithID, viewMessages,
     viewDeviceTypes, viewDeviceTypesWithID,
+    viewPropertiesOfDeviceType,
     viewStatesOfDeviceType, viewInputPinsOfDeviceType,
-    viewOutputPinsOfDeviceType, viewReadyToSendOfDeviceType,
+    viewOnReceiveOfInputPin,
+    viewOutputPinsOfDeviceType, viewOnSendOfOutputPin,
+    viewReadyToSendOfDeviceType,
     viewDeviceInstances, viewDeviceInstancesOfType,
     viewEdgeInstances, viewDeviceInstanceWithID
     ) where
@@ -76,7 +79,7 @@ viewDeviceTypesWithID g i
     | otherwise = putStrLn $ unlines $ getDeviceTypesInfo dtsWithID
   where
     dts = getDeviceTypes g
-    dtsWithID = filter (\(DeviceType n _ _ _ _) -> n == i) dts
+    dtsWithID = filter (\(DeviceType n _ _ _ _ _) -> n == i) dts
 
 getDeviceTypesInfo :: [DeviceType] -> [String]
 getDeviceTypesInfo dts =
@@ -85,6 +88,12 @@ getDeviceTypesInfo dts =
                    ++ (getInputPinsInfo $ inputPins dt)
                    ++ (getOutputPinsInfo $ outputPins dt)
                    ++ ["Code run when ready to send: " ++ readyToSend dt]) dts
+
+getPropertiesInfo :: [Property] -> [String]
+getPropertiesInfo ps =
+    concatMap (\p -> ["Property type: " ++ propertyType p]
+                  ++ ["Property name: " ++ propertyName p]
+                  ++ ["Property default" ++ propertyDefault p]) ps
 
 getStatesInfo :: [State] -> [String]
 getStatesInfo sts =
@@ -103,6 +112,16 @@ getOutputPinsInfo os =
                   ++ ["Output pin message type: " ++ oMessageTypeID o]
                   ++ ["Code run on send       : " ++ onSend o]) os
 
+viewPropertiesOfDeviceType :: Graph -> String -> IO ()
+viewPropertiesOfDeviceType g i
+    | dtsWithID == [] = putStrLn $
+                        "Error: No devices with ID \"" ++ i ++ "\" found."
+    | otherwise = putStrLn $ unlines $ getPropertiesInfo psOfDts
+  where
+    dts = getDeviceTypes g
+    dtsWithID = filter (\(DeviceType n _ _ _ _ _) -> n == i) dts
+    psOfDts = concatMap (properties) dtsWithID
+
 viewStatesOfDeviceType :: Graph -> String -> IO ()
 viewStatesOfDeviceType g i
     | dtsWithID == [] = putStrLn $
@@ -110,7 +129,7 @@ viewStatesOfDeviceType g i
     | otherwise = putStrLn $ unlines $ getStatesInfo stsOfDts
   where
     dts = getDeviceTypes g
-    dtsWithID = filter (\(DeviceType n _ _ _ _) -> n == i) dts
+    dtsWithID = filter (\(DeviceType n _ _ _ _ _) -> n == i) dts
     stsOfDts = concatMap (states) dtsWithID
 
 viewInputPinsOfDeviceType :: Graph -> String -> IO ()
@@ -120,18 +139,38 @@ viewInputPinsOfDeviceType g i
     | otherwise = putStrLn $ unlines $ getInputPinsInfo ipsOfDts
   where
     dts = getDeviceTypes g
-    dtsWithID = filter (\(DeviceType n _ _ _ _) -> n == i) dts
+    dtsWithID = filter (\(DeviceType n _ _ _ _ _) -> n == i) dts
     ipsOfDts = concatMap (inputPins) dtsWithID
 
+viewOnReceiveOfInputPin :: Graph -> String -> IO ()
+viewOnReceiveOfInputPin g n
+    | isWithID == [] = putStrLn $
+                       "Error: No input pins with ID \"" ++ n ++ "\" found."
+    | otherwise = putStrLn $ unlines $ getInputPinsInfo isWithID
+  where
+    dts = getDeviceTypes g
+    isWithID = filter (\i -> inputName i == n) allIs
+    allIs = concatMap inputPins dts
+
 viewOutputPinsOfDeviceType :: Graph -> String -> IO ()
-viewOutputPinsOfDeviceType g i
+viewOutputPinsOfDeviceType g o
     | dtsWithID == [] = putStrLn $
-                        "Error: No devices with ID \"" ++ i ++ "\" found."
+                        "Error: No devices with ID \"" ++ o ++ "\" found."
     | otherwise = putStrLn $ unlines $ getOutputPinsInfo opsOfDts
   where
     dts = getDeviceTypes g
-    dtsWithID = filter (\(DeviceType n _ _ _ _) -> n == i) dts
+    dtsWithID = filter (\(DeviceType n _ _ _ _ _) -> n == o) dts
     opsOfDts = concatMap (outputPins) dtsWithID
+
+viewOnSendOfOutputPin :: Graph -> String -> IO ()
+viewOnSendOfOutputPin g n
+    | osWithID == [] = putStrLn $
+                       "Error: No output pins with ID \"" ++ n ++ "\" found."
+    | otherwise = putStrLn $ unlines $ getOutputPinsInfo osWithID
+  where
+    dts = getDeviceTypes g
+    osWithID = filter (\o -> outputName o == n) allOs
+    allOs = concatMap outputPins dts
 
 viewReadyToSendOfDeviceType :: Graph -> String -> IO ()
 viewReadyToSendOfDeviceType g i
@@ -141,7 +180,7 @@ viewReadyToSendOfDeviceType g i
                   map (\r -> "Code run when ready to send: " ++ r) rtsOfDts
   where
     dts = getDeviceTypes g
-    dtsWithID = filter (\(DeviceType n _ _ _ _) -> n == i) dts
+    dtsWithID = filter (\(DeviceType n _ _ _ _ _) -> n == i) dts
     rtsOfDts = map (readyToSend) dtsWithID
 
 viewGraphInstance :: Graph -> IO ()

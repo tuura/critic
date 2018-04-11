@@ -4,7 +4,7 @@ module Poets.Critic.Writer (
     printXML, printXMLtoFile
     )where
 
-import Data.ByteString.Char8 hiding (putStrLn)
+import Data.ByteString.Char8 hiding (putStrLn, concatMap)
 import qualified Data.ByteString.Lazy.Char8 as B
 
 import Text.XML.Pugi hiding (path, parseFile)
@@ -69,6 +69,7 @@ getDeviceTypesElements [] _ = return ()
 getDeviceTypesElements (d:ds) dts = do
     dt <- appendElement "DeviceType" dts
     appendAttr "id" (pack $ deviceID d) dt
+    getPropertyElements (properties d) dt
     getStateElements (states d) dt
     getInputPinElements (inputPins d) dt
     getOutputPinElements (outputPins d) dt
@@ -76,14 +77,34 @@ getDeviceTypesElements (d:ds) dts = do
     _ <- appendCData (pack $ readyToSend d) rts
     getDeviceTypesElements ds dts
 
+getPropertyElements :: [Property] -> MutableNode ('Element) -> Modify ()
+getPropertyElements [] _ = return ()
+getPropertyElements ps dt = do
+    properties <- appendElement "Properties" dt
+    getPropertyScalars ps properties
+
+getPropertyScalars :: [Property] -> MutableNode ('Element) -> Modify ()
+getPropertyScalars [] _ = return ()
+getPropertyScalars (p:ps) properties = do
+    scalar <- appendElement "Scalar" properties
+    appendAttrs [("type", (pack $ propertyType p)),
+                 ("name", (pack $ propertyName p)),
+                 ("default", (pack $ propertyDefault p))] scalar
+    getPropertyScalars ps properties
+
 getStateElements :: [State] -> MutableNode ('Element) -> Modify ()
 getStateElements [] _ = return ()
-getStateElements (s:sts) dt = do
+getStateElements sts dt = do
     state <- appendElement "State" dt
+    getStateScalars sts state
+
+getStateScalars :: [State] -> MutableNode ('Element) -> Modify ()
+getStateScalars [] _ = return ()
+getStateScalars (s:sts) state = do
     scalar <- appendElement "Scalar" state
     appendAttrs [("name", (pack $ stateName s)),
                  ("type", (pack $ stateType s))] scalar
-    getStateElements sts dt
+    getStateScalars sts state
 
 getInputPinElements :: [InputPin] -> MutableNode ('Element) -> Modify ()
 getInputPinElements [] _ = return ()

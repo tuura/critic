@@ -64,6 +64,7 @@ getDevices (Just p)
           concatMap (\n -> case getName n of
               "DeviceType" -> [DeviceType
                   (getAttribute "id" n)
+                  (ps n)
                   (sts n)
                   (inPs n)
                   (outPs n)
@@ -72,13 +73,15 @@ getDevices (Just p)
               _            -> []) (listChildren p)
     | otherwise = getDevices $ nextSibling p
   where
-    getStates n = filter (\c -> (getName c) == "State") (listChildren n)
-    sts n = concatMap (\c -> case firstChild c of
-        Just s  -> [State
-                    (getAttribute "name" s)
-                    (getAttribute "type" s)]
-        Nothing ->  []
-                   ) (getStates n)
+    ps n = concatMap (\c ->
+        [Property (getAttribute "type" c)
+                  (getAttribute "name" c)
+                  (getAttribute "default" c)]
+        ) (getListOfAttribute "Properties" (firstChild n))
+    sts n = concatMap (\c ->
+        [State (getAttribute "name" c)
+               (getAttribute "type" c)]
+        ) (getListOfAttribute "State" (firstChild n))
     getInputs n = filter (\c -> (getName c) == "InputPin") (listChildren n)
     inPs n = map (\i -> InputPin
                         (getAttribute "name" i)
@@ -107,6 +110,14 @@ getDevices (Just p)
         Just x  -> getValue x
         Nothing -> ""
     getRTS n = filter (\c -> (getName c) == "ReadyToSend") (listChildren n)
+
+getListOfAttribute :: String -> Maybe Node -> [Node]
+getListOfAttribute _ (Nothing) = []
+getListOfAttribute s (Just n)
+    | getName n == s = listChildren n
+    | otherwise      = case nextSibling n of
+      Just c  -> getListOfAttribute s (Just c)
+      Nothing -> []
 
 getGraphInstance :: Maybe Node -> GraphType -> GraphInstance
 getGraphInstance Nothing _ = GraphInstance "" "" [] []

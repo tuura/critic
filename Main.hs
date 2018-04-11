@@ -9,7 +9,7 @@ import Poets.Graph.GraphAlgebra
 main :: IO ()
 main = do
 
-    original <- parseFile "fantasi-n2.xml"
+    original <- parseFile "fantasi-xmls/fantasi-n2.xml"
 
     case getGraph original of
         Nothing -> putStrLn "Failed"

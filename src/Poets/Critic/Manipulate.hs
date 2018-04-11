@@ -1,10 +1,13 @@
 module Poets.Critic.Manipulate (
     addMessageType, removeMessageType, addMessageToMessageType,
     removeMessageFromMessageType, addDeviceType, removeDeviceType,
+    addPropertyToDeviceType, removePropertyFromDeviceType,
     addStateToDeviceType, removeStateFromDeviceType,
     addInputPinToDeviceType, removeInputPinFromDeviceType,
+    replaceOnReceiveOfInputPinOfDeviceType,
     addOutputPinToDeviceType, removeOutputPinFromDeviceType,
-    addReadyToSendToDeviceType, removeReadyToSendFromDeviceType,
+    replaceOnSendOfOutputPinOfDeviceType,
+    replaceReadyToSendOfDeviceType,
     addDeviceInstance, removeDeviceInstance,
     addEdgeInstance, removeEdgeInstance
     ) where
@@ -74,7 +77,7 @@ addDeviceType g i = Graph (xmlns g) newGt (graphInstance g)
   where
     gt = getGraphType g
     dts = getDeviceTypes g
-    newDts = dts ++ [DeviceType i [] [] [] []]
+    newDts = dts ++ [DeviceType i [] [] [] [] []]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
 -- Currently returns the original graph if no device type is found
@@ -93,6 +96,47 @@ removeDeviceType g i
 -- Needs a check that the device type doesn't already exist
 -- Currently returns the original graph if the DeviceType doesn't exist
 -- Needs to output an error when this occurs
+addPropertyToDeviceType :: Graph -> String -> String -> String -> String -> Graph
+addPropertyToDeviceType g t n d dtid
+    | (length $ getDeviceTypesOfID dts dtid) /= 1 = g
+    | otherwise = Graph (xmlns g) newGt (graphInstance g)
+  where
+    p = Property t n d
+    ps = properties dtWithID
+    newPs = ps ++ [p]
+    gt = getGraphType g
+    dts = getDeviceTypes g
+    dtWithID = head $ getDeviceTypesOfID dts dtid
+    newDt (DeviceType i _ st ins outs rts) = DeviceType i newPs st ins outs rts
+    newDts = (delete dtWithID dts) ++ [newDt dtWithID]
+    newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
+
+-- If the device or the property doesn't exist, returns original graph
+-- Needs to output an error when this occurs
+removePropertyFromDeviceType :: Graph -> String -> String -> Graph
+removePropertyFromDeviceType g n dtid
+    | (length $ getDeviceTypesOfID dts dtid) /= 1 = g
+    | (length $ getPropertiesWithName ps n) /= 1 = g
+    | otherwise = Graph (xmlns g) newGt (graphInstance g)
+  where
+    dts = getDeviceTypes g
+    gt = getGraphType g
+    ps = properties dtWithID
+    newPs = delete rmP ps
+    rmP = head $ getPropertiesWithName ps n
+    dtWithID = head $ getDeviceTypesOfID dts dtid
+    newDt (DeviceType i _ st ins outs rts) = DeviceType i newPs st ins outs rts
+    newDts = (delete dtWithID dts) ++ [newDt dtWithID]
+    newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
+
+getPropertiesWithName :: [Property] -> String -> [Property]
+getPropertiesWithName ps n = psWithID
+  where
+    psWithID = filter (\(Property _ x _) -> x == n) ps
+
+-- Needs a check that the device type doesn't already exist
+-- Currently returns the original graph if the DeviceType doesn't exist
+-- Needs to output an error when this occurs
 addStateToDeviceType :: Graph -> String -> String -> String -> Graph
 addStateToDeviceType g n t dtid
     | (length $ getDeviceTypesOfID dts dtid) /= 1 = g
@@ -104,7 +148,7 @@ addStateToDeviceType g n t dtid
     gt = getGraphType g
     dts = getDeviceTypes g
     dtWithID = head $ getDeviceTypesOfID dts dtid
-    newDt (DeviceType i _ ins outs rts) = DeviceType i newSts ins outs rts
+    newDt (DeviceType i ps _ ins outs rts) = DeviceType i ps newSts ins outs rts
     newDts = (delete dtWithID dts) ++ [newDt dtWithID]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
@@ -122,7 +166,7 @@ removeStateFromDeviceType g n dtid
     newSts = delete rmSt sts
     rmSt = head $ getStatesWithName sts n
     dtWithID = head $ getDeviceTypesOfID dts dtid
-    newDt (DeviceType i _ ins outs rts) = DeviceType i newSts ins outs rts
+    newDt (DeviceType i ps _ ins outs rts) = DeviceType i ps newSts ins outs rts
     newDts = (delete dtWithID dts) ++ [newDt dtWithID]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
@@ -145,7 +189,7 @@ addInputPinToDeviceType g n mtid r dtid
     gt = getGraphType g
     dts = getDeviceTypes g
     dtWithID = head $ getDeviceTypesOfID dts dtid
-    newDt (DeviceType nm ss _ outs rts) = DeviceType nm ss newIs outs rts
+    newDt (DeviceType nm ps ss _ outs rts) = DeviceType nm ps ss newIs outs rts
     newDts = (delete dtWithID dts) ++ [newDt dtWithID]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
@@ -163,7 +207,7 @@ removeInputPinFromDeviceType g n dtid
     dtWithID = head $ getDeviceTypesOfID dts dtid
     iWithID = head $ getInputPinsWithName is n
     newIs = delete iWithID is
-    newDt (DeviceType nm ss _ outs rts) = DeviceType nm ss newIs outs rts
+    newDt (DeviceType nm ps ss _ outs rts) = DeviceType nm ps ss newIs outs rts
     newDts = (delete dtWithID dts) ++ [newDt dtWithID]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
@@ -171,6 +215,23 @@ getInputPinsWithName :: [InputPin] -> String -> [InputPin]
 getInputPinsWithName is n = isWithID
   where
     isWithID = filter (\(InputPin x _ _) -> x == n) is
+
+replaceOnReceiveOfInputPinOfDeviceType :: Graph -> String -> String -> String -> Graph
+replaceOnReceiveOfInputPinOfDeviceType g i dtid c
+    | (length $ getDeviceTypesOfID dts dtid) /= 1 = g
+    | (length $ getInputPinsWithName is i) /= 1 = g
+    | otherwise = Graph (xmlns g) newGt (graphInstance g)
+  where
+    is = inputPins dtWithID
+    dts = getDeviceTypes g
+    gt = getGraphType g
+    dtWithID = head $ getDeviceTypesOfID dts dtid
+    iWithID = head $ getInputPinsWithName is i
+    newI (InputPin n t _) = InputPin n t c
+    newIs = (delete iWithID is) ++ [newI iWithID]
+    newDt (DeviceType nm ps ss _ outs rts) = DeviceType nm ps ss newIs outs rts
+    newDts = (delete dtWithID dts) ++ [newDt dtWithID]
+    newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
 -- Needs a check that the output pin doesn't already exist
 -- Currently returns the original graph if the DeviceType doesn't exist
@@ -186,7 +247,7 @@ addOutputPinToDeviceType g n mtid r dtid
     gt = getGraphType g
     dts = getDeviceTypes g
     dtWithID = head $ getDeviceTypesOfID dts dtid
-    newDt (DeviceType nm ss ins _ rts) = DeviceType nm ss ins newOs rts
+    newDt (DeviceType nm ps ss ins _ rts) = DeviceType nm ps ss ins newOs rts
     newDts = (delete dtWithID dts) ++ [newDt dtWithID]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
@@ -204,7 +265,7 @@ removeOutputPinFromDeviceType g n dtid
     dtWithID = head $ getDeviceTypesOfID dts dtid
     oWithID = head $ getOutputPinsWithName os n
     newOs = delete oWithID os
-    newDt (DeviceType nm ss ins _ rts) = DeviceType nm ss ins newOs rts
+    newDt (DeviceType nm ps ss ins _ rts) = DeviceType nm ps ss ins newOs rts
     newDts = (delete dtWithID dts) ++ [newDt dtWithID]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
@@ -213,39 +274,42 @@ getOutputPinsWithName os n = osWithID
   where
     osWithID = filter (\(OutputPin x _ _) -> x == n) os
 
--- Needs a check that the ready to send of this device doesn't already exist
--- Currently returns the original graph if the DeviceType doesn't exist
--- Needs to output an error when this occurs
-addReadyToSendToDeviceType :: Graph -> String -> String -> Graph
-addReadyToSendToDeviceType g rts dtid
+replaceOnSendOfOutputPinOfDeviceType :: Graph -> String -> String -> String -> Graph
+replaceOnSendOfOutputPinOfDeviceType g o dtid c
     | (length $ getDeviceTypesOfID dts dtid) /= 1 = g
+    | (length $ getOutputPinsWithName os o) /= 1 = g
     | otherwise = Graph (xmlns g) newGt (graphInstance g)
   where
-    gt = getGraphType g
+    os = outputPins dtWithID
     dts = getDeviceTypes g
+    gt = getGraphType g
     dtWithID = head $ getDeviceTypesOfID dts dtid
-    newDt (DeviceType nm ss ins outs _) = DeviceType nm ss ins outs rts
+    oWithID = head $ getOutputPinsWithName os o
+    newO (OutputPin n t _) = OutputPin n t c
+    newOs = (delete oWithID os) ++ [newO oWithID]
+    newDt (DeviceType nm ps ss ins _ rts) = DeviceType nm ps ss ins newOs rts
     newDts = (delete dtWithID dts) ++ [newDt dtWithID]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
--- If the device type doesn't exist, returns the original graph
--- Needs an error message to be output if this happens
-removeReadyToSendFromDeviceType :: Graph -> String -> Graph
-removeReadyToSendFromDeviceType g dtid
+-- Needs a check that the ready to send of this device doesn't already exist
+-- Currently returns the original graph if the DeviceType doesn't exist
+-- Needs to output an error when this occurs
+replaceReadyToSendOfDeviceType :: Graph -> String -> String -> Graph
+replaceReadyToSendOfDeviceType g rts dtid
     | (length $ getDeviceTypesOfID dts dtid) /= 1 = g
     | otherwise = Graph (xmlns g) newGt (graphInstance g)
   where
     gt = getGraphType g
     dts = getDeviceTypes g
     dtWithID = head $ getDeviceTypesOfID dts dtid
-    newDt (DeviceType nm ss ins outs _) = DeviceType nm ss ins outs ""
+    newDt (DeviceType nm ps ss ins outs _) = DeviceType nm ps ss ins outs rts
     newDts = (delete dtWithID dts) ++ [newDt dtWithID]
     newGt = GraphType (graphTypeID gt) (messageTypes gt) newDts
 
 getDeviceTypesOfID :: [DeviceType] -> String -> [DeviceType]
 getDeviceTypesOfID dts i = dtsWithID
   where
-    dtsWithID = filter (\(DeviceType n _ _ _ _) -> n == i) dts
+    dtsWithID = filter (\(DeviceType n _ _ _ _ _) -> n == i) dts
 
 -- Needs a check that the device type given exists
 -- Needs a check taht the device ID is not already taken
