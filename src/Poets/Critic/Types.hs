@@ -191,8 +191,9 @@ data DeviceInstance = DeviceInstance
 
 instance Show DeviceInstance where
     show d = "DeviceInstance\n" ++
-             "        type = " ++ (deviceType d) ++ "\n" ++
-             "        id = " ++ deviceInstanceID d ++ "\n"
+             "        type = " ++ deviceType d ++ "\n" ++
+             "        id = " ++ deviceInstanceID d ++ "\n" ++
+             "       properties = " ++ (show $ deviceProperties d) ++ "\n"
 
 getDeviceInstancesOfType :: Graph -> DeviceType -> [DeviceInstance]
 getDeviceInstancesOfType g dt = filter (\i -> (deviceType i) == (deviceID dt)) dis

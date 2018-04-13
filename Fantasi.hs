@@ -2,6 +2,7 @@
 
 module Main where
 
+import Data.List
 import System.Environment
 import System.Random
 import Poets.Critic
@@ -37,20 +38,25 @@ prepareFile path = do
                   ++ "\t\t\t\t\t\t" ++ "handler_log(3, \"distance: %d\", deviceState->distance);"
                   ++ "\t\t\t\t\t\t" ++ "\n"
                   ++ "\t\t\t\t\t\t" ++ "}\n")
+
+              g4 = formatDeviceInstanceIDs g3
         -- Generate random number to represent the first device
               noOfFlipflops = length $ getDeviceInstances g
           randomNum <- randomRIO (0, (noOfFlipflops - 1))
           putStrLn $ show randomNum
         -- Get first flipflop
-          let flipflops = getDeviceInstancesOfType g3 $
+          let flipflops = getDeviceInstancesOfType g4 $
                         findDeviceType "flipflop" $
-                        getDeviceTypes g3
+                        getDeviceTypes g4
               firstFF = flipflops !! randomNum
 
           putStrLn $ deviceInstanceID firstFF
-          let g4 = addDeviceInstanceProperty g3 (deviceInstanceID $ firstFF) "first" "1"
 
-          printXMLtoFile g4 "fantasi-test.xml" -- This causes an error because of HEAD on an empty list
+          let g5 = addDeviceInstanceProperty g4 (deviceInstanceID $ firstFF) "first" "1"
+
+          writeFile "devs.xml" (edgeStrings $ getEdgeInstances g5)
+
+          -- printXMLtoFile g5 "fantasi-test.xml" -- This causes an error because of HEAD on an empty list
 
           putStrLn "Complete"
 
@@ -59,3 +65,17 @@ prepareFile path = do
     --       Allow option of first device
     --       Generate as binary to be used with tinsel/poets-ecosystem
     --       Add testing of this
+
+deviceStrings :: [DeviceInstance] -> String
+deviceStrings [] = ""
+deviceStrings (d:ds)
+    | props /= [] = str ++ ">\n\t<P>" ++ propStr ++ "</DevI>" ++ "\n" ++ deviceStrings ds
+    | otherwise   = str ++ "/>" ++ "\n" ++ deviceStrings ds
+  where
+    props = deviceProperties d
+    propStr = unlines $ intersperse ", " $ map (\p -> "\"" ++ deviceProperty p ++ "\": " ++ value p ++ "</P>") props
+    str = "<DevI type=\"" ++ deviceType d ++ "\" id=\"" ++ deviceInstanceID d ++ "\""
+
+edgeStrings :: [EdgeInstance] -> String
+edgeStrings [] = ""
+edgeStrings (e:es) = "\t\t<EdgeI path=\"" ++ (deviceInstanceID $ inNode e) ++ ":in-" ++ (deviceInstanceID $ outNode e) ++ ":out\"/>\n" ++ edgeStrings es
