@@ -10,6 +10,7 @@ module Poets.Critic.Manipulate (
     replaceOnSendOfOutputPinOfDeviceType, addToOnSendOfOutputPinOfDeviceType,
     replaceReadyToSendOfDeviceType, addToReadyToSendOfDeviceType,
     addDeviceInstance, removeDeviceInstance,
+    addDeviceInstanceProperty, removeDeviceInstanceProperty,
     addEdgeInstance, removeEdgeInstance
     ) where
 
@@ -353,9 +354,8 @@ addDeviceInstance g i t = Graph (xmlns g) (graphType g) (newGi gi)
   where
     gi = getGraphInstance g
     dis = getDeviceInstances g
-    dts = getDeviceTypes g
-    newDt = findDeviceType t dts
-    newDi = DeviceInstance newDt i
+    -- dts = getDeviceTypes g
+    newDi = DeviceInstance t i []
     newDis = dis ++ [newDi]
     newGi (GraphInstance m n _ e) = GraphInstance m n newDis e
 
@@ -375,7 +375,38 @@ removeDeviceInstance g i
 getDeviceInstancesWithID :: [DeviceInstance] -> String -> [DeviceInstance]
 getDeviceInstancesWithID dis i = disWithID
   where
-    disWithID = filter (\(DeviceInstance _ n) -> n == i) dis
+    disWithID = filter (\(DeviceInstance _ n _) -> n == i) dis
+
+addDeviceInstanceProperty :: Graph -> String -> String -> String -> Graph
+addDeviceInstanceProperty g did pid val
+    | (length $ getDeviceInstancesWithID dis did) /= 1 = g
+    | otherwise = Graph (xmlns g) (graphType g) (newGi gi)
+  where
+    gi = getGraphInstance g
+    dis = getDeviceInstances g
+    diWithID = head $ getDeviceInstancesWithID dis did
+    dts = getDeviceTypes g
+    dt = findDeviceType (deviceType diWithID) dts
+    diProp = head $ filter (\p -> propertyName p == pid) (properties $ dt)
+    newDP = DeviceProperty (propertyName diProp) val
+    newDi (DeviceInstance t n p) = DeviceInstance t n (p ++ [newDP])
+    newDis = delete diWithID dis ++ [newDi diWithID]
+    newGi (GraphInstance m n _ e) = GraphInstance m n newDis e
+
+removeDeviceInstanceProperty :: Graph -> String -> String -> Graph
+removeDeviceInstanceProperty g did pid
+    | (length $ getDeviceInstancesWithID dis did) /= 1 = g
+    | otherwise = Graph (xmlns g) (graphType g) (newGi gi)
+  where
+    gi = getGraphInstance g
+    dis = getDeviceInstances g
+    diWithID = head $ getDeviceInstancesWithID dis did
+    rmProp = head $ filter
+                 (\p -> (deviceProperty p) == pid)
+             (deviceProperties diWithID)
+    newDi (DeviceInstance t n p) = DeviceInstance t n (delete rmProp p)
+    newDis = delete diWithID dis ++ [newDi diWithID]
+    newGi (GraphInstance m n _ e) = GraphInstance m n newDis e
 
 -- Needs a check that the path does not already exist
 -- Paths could possibly be parsed further, separating into in and out
@@ -411,13 +442,3 @@ getEdgeInstancesWithPath eis p = usefulEis
     asPaths = map (\e -> (deviceInstanceID $ inNode e) ++ ":in-"
                ++ (deviceInstanceID $ outNode e) ++ ":out\n")
                 eis
-
--- parsePath :: String -> [DeviceInstance] -> EdgeInstance
--- parsePath p dis = EdgeInstance i o
---   where
---     (Just first) = elemIndex ':' p
---     i = findDeviceInstance (take first p) dis
---     (Just sp) = elemIndex '-' p
---     split = drop (sp + 1) p
---     (Just second) = elemIndex ':' split
---     o = findDeviceInstance (take second split) dis

@@ -4,6 +4,7 @@ module Poets.Critic.Parser (
 
 import Data.ByteString.Char8 (pack, unpack)
 import Data.List
+import Data.List.Split
 
 import Text.XML.Pugi hiding (getName, getValue, parseFile)
 import qualified Text.XML.Pugi as Pugi
@@ -135,12 +136,36 @@ getDeviceInstances :: Maybe Node -> [DeviceType] -> [DeviceInstance]
 getDeviceInstances Nothing _ = []
 getDeviceInstances (Just n) dts
     | getName n == "DeviceInstances" = map (\c -> DeviceInstance
-                                                      (findDeviceType (di c) dts)
+                                                      (di c)
                                                       (getAttribute "id" c)
+                                                      (getDeviceProperties c dts)
                                            ) (listChildren n)
     | otherwise = getDeviceInstances (nextSibling n) dts
   where
     di c = getAttribute "type" c
+
+getDeviceProperties :: Node -> [DeviceType] -> [DeviceProperty]
+getDeviceProperties d dts
+    | children == [] = []
+    | otherwise      = parseProperties props
+  where
+    children = listChildren d
+    p = head $ children
+    props = trim $ getValue (head $ listChildren p)
+    trim s = do
+      let f = if (head s == ' ') then tail s else s
+      let r = if (last f == ' ') then init f else f
+      r
+
+parseProperties :: String -> [DeviceProperty]
+parseProperties props = map (\(f, s) -> DeviceProperty f s) form
+  where
+    sep = map (\s -> splitAt (ind s) s) (splitOn "," props)
+    treat = map (\(p, v) -> ((tail $ init p), drop 2 v)) sep
+    form = map (\(p, v) -> (p, v)) treat
+    ind s = case (':' `elemIndex` s) of
+      Just n  -> n
+      Nothing -> 0
 
 getEdgeInstances :: Maybe Node -> [DeviceInstance] -> [EdgeInstance]
 getEdgeInstances Nothing _ = []
@@ -150,15 +175,18 @@ getEdgeInstances (Just n) dis
     | otherwise = getEdgeInstances (nextSibling n) dis
 
 parsePath :: Node -> [DeviceInstance] -> EdgeInstance
-parsePath pth dis = EdgeInstance i o
+parsePath pth dis = EdgeInstance (i first) (o second)
   where
     p = getAttribute "path" pth
-    (Just first) = elemIndex ':' p
-    i = findDeviceInstance (take first p) dis
-    (Just sp) = elemIndex '-' p
-    split = drop (sp + 1) p
-    (Just second) = elemIndex ':' split
-    o = findDeviceInstance (take second split) dis
+    first = elemIndex ':' p
+    i (Just f) = findDeviceInstance (take f p) dis
+    i Nothing = findDeviceInstance "" dis
+    sp = elemIndex '-' p
+    spl (Just s) = drop (s + 1) p
+    spl (Nothing) = ""
+    second = elemIndex ':' (spl sp)
+    o (Just s) = findDeviceInstance (take s (spl sp)) dis
+    o Nothing = findDeviceInstance "" dis
 
 getAttribute :: String -> Node -> String
 getAttribute att n = case Pugi.attribute (pack att) n of

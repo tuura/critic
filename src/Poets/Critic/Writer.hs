@@ -4,7 +4,7 @@ module Poets.Critic.Writer (
     printXML, printXMLtoFile
     )where
 
-import Data.ByteString.Char8 hiding (putStrLn, concatMap)
+import Data.ByteString.Char8 hiding (putStrLn, concatMap, map, unlines, length)
 import qualified Data.ByteString.Lazy.Char8 as B
 
 import Text.XML.Pugi hiding (path, parseFile)
@@ -80,17 +80,17 @@ getDeviceTypesElements (d:ds) dts = do
 getPropertyElements :: [Property] -> MutableNode ('Element) -> Modify ()
 getPropertyElements [] _ = return ()
 getPropertyElements ps dt = do
-    properties <- appendElement "Properties" dt
-    getPropertyScalars ps properties
+    props <- appendElement "Properties" dt
+    getPropertyScalars ps props
 
 getPropertyScalars :: [Property] -> MutableNode ('Element) -> Modify ()
 getPropertyScalars [] _ = return ()
-getPropertyScalars (p:ps) properties = do
-    scalar <- appendElement "Scalar" properties
+getPropertyScalars (p:ps) props = do
+    scalar <- appendElement "Scalar" props
     appendAttrs [("type", (pack $ propertyType p)),
                  ("name", (pack $ propertyName p)),
                  ("default", (pack $ propertyDefault p))] scalar
-    getPropertyScalars ps properties
+    getPropertyScalars ps props
 
 getStateElements :: [State] -> MutableNode ('Element) -> Modify ()
 getStateElements [] _ = return ()
@@ -140,9 +140,22 @@ getDeviceInstanceElements :: [DeviceInstance] -> MutableNode ('Element) -> Modif
 getDeviceInstanceElements [] _ = return ()
 getDeviceInstanceElements (d:ds) gi = do
     di <- appendElement "DevI" gi
-    appendAttrs [("type", pack $ deviceID $ deviceType d),
+    appendAttrs [("type", pack $ deviceType d),
                  ("id", pack $ deviceInstanceID d)] di
-    getDeviceInstanceElements ds gi
+    if (length $ deviceProperties d) > 0
+        then do
+            dp <- appendElement "P" di
+            _ <- getDeviceInstancePropertyElements (deviceProperties d) dp
+            getDeviceInstanceElements ds gi
+        else getDeviceInstanceElements ds gi
+
+getDeviceInstancePropertyElements :: [DeviceProperty] -> MutableNode ('Element) -> Modify ()
+getDeviceInstancePropertyElements [] _ = return ()
+getDeviceInstancePropertyElements (p:ps) dp = do
+    _ <- appendPCData (pack $ propString) dp
+    getDeviceInstancePropertyElements ps dp
+  where
+    propString = "\"" ++ (deviceProperty p) ++ "\": " ++ value p
 
 getEdgeInstanceElements :: [EdgeInstance] -> MutableNode ('Element) -> Modify ()
 getEdgeInstanceElements [] _ = return ()

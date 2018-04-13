@@ -9,6 +9,7 @@ module Poets.Critic.View (
     viewOutputPinsOfDeviceType, viewOnSendOfOutputPin,
     viewReadyToSendOfDeviceType,
     viewDeviceInstances, viewDeviceInstancesOfType,
+    viewPropertiesOfDeviceInstance,
     viewEdgeInstances, viewDeviceInstanceWithID
     ) where
 
@@ -91,9 +92,9 @@ getDeviceTypesInfo dts =
 
 getPropertiesInfo :: [Property] -> [String]
 getPropertiesInfo ps =
-    concatMap (\p -> ["Property type: " ++ propertyType p]
-                  ++ ["Property name: " ++ propertyName p]
-                  ++ ["Property default" ++ propertyDefault p]) ps
+    concatMap (\p -> ["Property type   : " ++ propertyType p]
+                  ++ ["Property name   : " ++ propertyName p]
+                  ++ ["Property default: " ++ propertyDefault p]) ps
 
 getStatesInfo :: [State] -> [String]
 getStatesInfo sts =
@@ -210,7 +211,7 @@ viewDeviceInstancesOfType g t
     | otherwise = putStrLn $ unlines $ getDeviceInstancesInfo disOfType
   where
     dis = getDeviceInstances g
-    disOfType = filter (\(DeviceInstance n _) -> deviceID n == t) dis
+    disOfType = filter (\(DeviceInstance n _ _) -> n == t) dis
 
 viewDeviceInstanceWithID :: Graph -> String -> IO ()
 viewDeviceInstanceWithID g i
@@ -219,12 +220,27 @@ viewDeviceInstanceWithID g i
     | otherwise = putStrLn $ unlines $ getDeviceInstancesInfo disWithID
   where
     dis = getDeviceInstances g
-    disWithID = filter (\(DeviceInstance _ n) -> n == i) dis
+    disWithID = filter (\(DeviceInstance _ n _) -> n == i) dis
+
+viewPropertiesOfDeviceInstance :: Graph -> String -> IO ()
+viewPropertiesOfDeviceInstance g i
+    | disWithID == [] = putStrLn $
+                        "Error: No device with id \"" ++ i ++ "\" found."
+    | otherwise = putStrLn $ getDevicePropertiesInfo $ head disWithID
+  where
+    dis = getDeviceInstances g
+    disWithID = filter (\(DeviceInstance _ n _) -> n == i) dis
 
 getDeviceInstancesInfo :: [DeviceInstance] -> [String]
 getDeviceInstancesInfo dis =
-    map (\di -> "Device ID: " ++ deviceInstanceID di ++
-                " Device type: " ++ (deviceID $ deviceType di)) dis
+    map (\di -> "Device ID: " ++ deviceInstanceID di ++ "\n" ++
+                " Device type: " ++ (deviceType di) ++ "\n" ++
+                " Device properties: " ++ getDevicePropertiesInfo di) dis
+
+getDevicePropertiesInfo :: DeviceInstance -> String
+getDevicePropertiesInfo di =
+    concatMap (\(DeviceProperty p v) -> "Property: " ++ p ++ "\n"
+                                     ++ "Value: " ++ v) (deviceProperties di)
 
 viewEdgeInstances :: Graph -> IO ()
 viewEdgeInstances g = putStrLn $ unlines $ getEdgeInstancesInfo eis

@@ -4,11 +4,11 @@ module Poets.Critic.Types (
   DeviceType (..), Property (..), State (..),
   InputPin (..), OutputPin (..),
   GraphInstance (..), DeviceInstance (..),
-  EdgeInstance (..), getGraphType,
+  DeviceProperty (..), EdgeInstance (..), getGraphType,
   getGraphInstance, getMessageTypes,
-  getDeviceTypes, findDeviceType,
+  getDeviceType, getDeviceTypes, findDeviceType,
   getDeviceInstances, findDeviceInstance,
-  getEdgeInstances
+  getEdgeInstances, getDeviceInstancesOfType
   ) where
 
 import Data.List
@@ -51,6 +51,11 @@ getMessageTypes g = messageTypes $ graphType g
 getDeviceTypes :: Graph -> [DeviceType]
 getDeviceTypes g = deviceTypes $ graphType g
 
+getDeviceType :: Graph -> String -> DeviceType
+getDeviceType g i = head $ filter (\s -> deviceID s == i) dts
+  where
+    dts = deviceTypes $ graphType g
+
 data MessageType = MessageType
                   {
                       messageID :: String,
@@ -86,6 +91,7 @@ data DeviceType = DeviceType
 instance Show DeviceType where
     show d = "DeviceType\n" ++
              "            " ++ deviceID d ++ "\n" ++
+             "            " ++ (show $ properties d) ++ "\n" ++
              "            " ++ (show $ states d) ++ "\n" ++
              "            " ++ (show $ inputPins d) ++ "\n" ++
              "            " ++ (show $ outputPins d) ++ "\n" ++
@@ -109,9 +115,9 @@ data Property = Property
 
 instance Show Property where
   show p = "Property\n" ++
-           "          " ++ propertyType p ++ "\n" ++
-           "          " ++ propertyName p ++ "\n" ++
-           "          " ++ propertyDefault p ++ "\n"
+           "          Property type   : " ++ propertyType p ++ "\n" ++
+           "          Property name   : " ++ propertyName p ++ "\n" ++
+           "          Property default: " ++ propertyDefault p ++ "\n"
 
 data State = State
            {
@@ -174,19 +180,35 @@ findDeviceInstance i dis = di index
     index = elemIndex i instanceIDs
     instanceIDs = map deviceInstanceID dis
     di (Just x) = dis !! x
-    di (Nothing) = DeviceInstance (DeviceType ("No instance of ID \"" ++ i ++ "\"")
-                                   [] [] [] [] []) []
+    di (Nothing) = DeviceInstance ("No instance of ID \"" ++ i ++ "\"") [] []
 
 data DeviceInstance = DeviceInstance
                     {
-                        deviceType         :: DeviceType,
-                        deviceInstanceID   :: String
+                        deviceType         :: String,
+                        deviceInstanceID   :: String,
+                        deviceProperties   :: [DeviceProperty]
                     } deriving Eq
 
 instance Show DeviceInstance where
     show d = "DeviceInstance\n" ++
-             "        type = " ++ (deviceID $ deviceType d) ++ "\n" ++
+             "        type = " ++ (deviceType d) ++ "\n" ++
              "        id = " ++ deviceInstanceID d ++ "\n"
+
+getDeviceInstancesOfType :: Graph -> DeviceType -> [DeviceInstance]
+getDeviceInstancesOfType g dt = filter (\i -> (deviceType i) == (deviceID dt)) dis
+  where
+    dis = getDeviceInstances g
+
+data DeviceProperty = DeviceProperty
+                    {
+                        deviceProperty :: String,
+                        value          :: String
+                    } deriving Eq
+
+instance Show DeviceProperty where
+    show p = "DeviceProperty\n" ++
+             "                " ++ show (deviceProperty p) ++
+             "                value = " ++ value p
 
 data EdgeInstance = EdgeInstance
                   {

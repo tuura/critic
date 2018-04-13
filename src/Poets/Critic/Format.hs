@@ -25,6 +25,6 @@ formatDeviceInstanceIDs g = Graph (xmlns g) (graphType g) newGi
                           newEis
 
 formatDeviceInstanceID :: DeviceInstance -> DeviceInstance
-formatDeviceInstanceID (DeviceInstance t i)
-    | isDigit $ head i = DeviceInstance t ([head $ deviceID t] ++ i)
-    | otherwise        = DeviceInstance t i
+formatDeviceInstanceID (DeviceInstance t i p)
+    | isDigit $ head i = DeviceInstance t ([head t] ++ i) p
+    | otherwise        = DeviceInstance t i p
