@@ -5,9 +5,11 @@ import Data.List
 import Poets.Critic.Types
 
 convertToAlgebra :: Graph -> String
-convertToAlgebra g = intercalate " + " sequences
+convertToAlgebra g = getGraphAlgebra $ getEdgeInstances g
+
+getGraphAlgebra :: [EdgeInstance] -> String
+getGraphAlgebra es = intercalate " + " sequences
   where
-    es = getEdgeInstances g
     sequences = map (\e -> i e ++ " -> " ++ o e) es
     i = deviceInstanceID . inNode
     o = deviceInstanceID . outNode
