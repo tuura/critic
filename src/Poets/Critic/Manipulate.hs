@@ -23,7 +23,7 @@ addMessageType g i = Graph (xmlns g) newGt (graphInstance g)
   where
     gt = getGraphType g
     mts = getMessageTypes g
-    newMts = mts ++ [MessageType i (Message "" "")]
+    newMts = mts ++ [MessageType i [Message "" ""]]
     newGt = GraphType (graphTypeID gt) newMts (deviceTypes gt)
 
 -- If the message type does not exist this returns the original graph
@@ -48,30 +48,37 @@ addMessageToMessageType g n t mtid
     | otherwise = Graph (xmlns g) newGt (graphInstance g)
   where
     m = Message n t
+    newMs = messages mtWithID ++ [m]
     gt = getGraphType g
     mts = getMessageTypes g
     mtWithID = head $ getMessageTypesOfID mts mtid
-    newMts = (delete mtWithID mts) ++ [MessageType mtid m]
+    newMts = (delete mtWithID mts) ++ [MessageType mtid newMs]
     newGt = GraphType (graphTypeID gt) newMts (deviceTypes gt)
 
 -- If message type or message does not exist, this returns the original graph
 -- An error needs to be printed explaining so to the user
-removeMessageFromMessageType :: Graph -> String -> Graph
-removeMessageFromMessageType g mtid
+removeMessageFromMessageType :: Graph -> String -> String -> Graph
+removeMessageFromMessageType g mtid mid
     | (length $ getMessageTypesOfID mts mtid) /= 1 = g
     | otherwise = Graph (xmlns g) newGt (graphInstance g)
   where
-    m = Message "" ""
+    m = head $ getMessagesWithName (messages mtWithID) mid -- TODO: Using head here makes me sad.
+    newMs = delete m (messages mtWithID)
     gt = getGraphType g
     mts = getMessageTypes g
     mtWithID = head $ getMessageTypesOfID mts mtid
-    newMts = (delete mtWithID mts) ++ [MessageType (messageID mtWithID) m]
+    newMts = (delete mtWithID mts) ++ [MessageType (messageID mtWithID) newMs]
     newGt = GraphType (graphTypeID gt) newMts (deviceTypes gt)
 
 getMessageTypesOfID :: [MessageType] -> String -> [MessageType]
 getMessageTypesOfID mts i = mtsWithID
   where
     mtsWithID = filter (\(MessageType n _) -> n == i) mts
+
+getMessagesWithName :: [Message] -> String -> [Message]
+getMessagesWithName ms i = msWithID
+  where
+    msWithID = filter (\(Message n _) -> n == i) ms
 
 -- Needs a check that the type doesn't already exist
 addDeviceType :: Graph -> String -> Graph

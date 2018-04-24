@@ -9,14 +9,16 @@ import Poets.Graph.GraphAlgebra
 main :: IO ()
 main = do
 
-    original <- parseFile "fantasi-random/fantasi-n1-random.xml"
+    original <- parseFile "fantasi-test/fantasi-n1-random.xml"
 
-    case getGraph original of
-        Nothing -> putStrLn "Failed"
-        Just g  -> do
-            let deviceInstances = getDeviceInstances g
+    case original of
+        Left  e  -> putStrLn $ "Failed"
+        Right n  -> do
+            let (Just g) = getGraph n
+                deviceInstances = getDeviceInstances g
                 tree = buildRandomTree deviceInstances
                 algebra = getGraphAlgebra tree
             putStrLn algebra
+            putStrLn "Complete"
 
 

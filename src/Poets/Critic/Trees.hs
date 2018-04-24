@@ -17,11 +17,11 @@ randomTree ds [] cs = randomTree newDs [(d, False)] cs -- TODO: Set v as root!
   where
     d     = getRandomDevice ds
     newDs = delete d ds
-randomTree ds vs cs = randomTree newDs (vs ++ [(d, True)]) (cs ++ c)
+randomTree ds vs cs = randomTree newDs (newVs) (cs ++ c)
   where
     v     = getRandomDevice vs
     d     = getRandomDevice ds
-    newVs = delete v vs ++ [(fst v, False)]
+    newVs = delete v vs ++ [(fst v, False), (d, True)]
     newDs = delete d ds
     c     = connectDevice (fst v) d
 
