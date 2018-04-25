@@ -7,9 +7,7 @@ module Poets.Critic.Parser (
 import qualified Data.ByteString.Char8 as C (readFile, pack, unpack, ByteString)
 import Data.List
 import Data.List.Split
-
--- import Text.XML.Pugi hiding (getName, getValue, parseFile)
--- import qualified Text.XML.Pugi as Pugi
+import Data.String.Utils
 
 import Text.XML.Hexml hiding (attributeName, attributeValue)
 import qualified Text.XML.Hexml as H (attributeValue)
@@ -51,14 +49,14 @@ getMessages (p:ps)
     (concatMap (\n -> case name n of
         "MessageType" -> [MessageType
                           (attributeValue $ attributeBy n "id")
-                          (map getMessage (children n))]
+                          (concatMap getMessage (children n))]
         _             -> []
     ) (children $ p))
     | otherwise = getMessages $ ps
   where
-    getMessage n = Message
-                (getChildName n)
-                (getChildType n)
+    getMessage n = map (\c -> Message
+                (getChildName c)
+                (getChildType c)) (children n)
     getChildName c = attributeValue $ attributeBy c "name"
     getChildType c = attributeValue $ attributeBy c "type"
 
@@ -82,45 +80,46 @@ getDevices (p:ps)
         [Property (attributeValue $ attributeBy c "type")
                   (attributeValue $ attributeBy c "name")
                   (attributeValue $ attributeBy c "default")]
-        ) (getListOfAttribute "Properties" n)
+        ) (getListOfAttribute "Properties" (children n))
     sts n = concatMap (\c ->
         [State (attributeValue $ attributeBy c "name")
                (attributeValue $ attributeBy c "type")]
-        ) (getListOfAttribute "State" n)
+        ) (getListOfAttribute "State" (children n))
     getInputs n = filter (\c -> (name c) == "InputPin") (children n)
     inPs n = map (\i -> InputPin
                         (attributeValue $ attributeBy i "name")
-                        (attributeValue $ attributeBy i "messageTypeId")
-                        (concatMap onRec (children i))
+                        (attributeValue $ attributeBy i "messageTypeId") ""
+                        -- (concatMap onRec (children i))
                     ) (getInputs n)
-    onRec i = if (name i) == "OnReceive"
-        then if (length $ children i) /= 0
-            then C.unpack $ inner (head $ children i)
-            else ""
-        else ""
+    onRec i = C.unpack $ name i
+    -- onRec i = if (name i) == "OnReceive"
+    --     then if (length $ children i) /= 0
+    --         then C.unpack $ inner (head $ children i)
+    --         else ""
+    --     else ""
     getOutputs n = filter (\c -> (name c) == "OutputPin") (children n)
     outPs n = map (\i -> OutputPin
                         (attributeValue $ attributeBy i "name")
-                        (attributeValue $ attributeBy i "messageTypeId")
-                        (concatMap onSen (children i))
+                        (attributeValue $ attributeBy i "messageTypeId") ""
+                        -- (concatMap onSen (children i))
                      ) (getOutputs n)
-    onSen o = if (name o) == "OnSend"
-        then if (length $ children o) /= 0
-            then C.unpack $ inner (head $ children o)
-            else ""
-        else ""
-    rToS n = if (length $ children $ head $ getRTS n) /= 0 -- TODO: Applying `head` hear makes me sad
-        then C.unpack $ inner (head $ getRTS n)
-        else ""
+    onSen o = C.unpack $ name o
+    -- onSen o = if (name o) == "OnSend"
+    --     then if (length $ children o) /= 0
+    --         then C.unpack $ inner (head $ children o)
+    --         else ""
+    --     else ""
+    rToS n = C.unpack $ name n
+    -- rToS n = if (length $ children $ head $ getRTS n) /= 0 -- TODO: Applying `head` hear makes me sad
+    --     then C.unpack $ inner (head $ getRTS n)
+    --     else ""
     getRTS n = filter (\c -> (name c) == "ReadyToSend") (children n)
 
-getListOfAttribute :: String -> Node -> [Node]
-getListOfAttribute s n
+getListOfAttribute :: String -> [Node] -> [Node]
+getListOfAttribute _ []  = []
+getListOfAttribute s (n:ns)
     | name n == C.pack s = children n
-    | otherwise   = []
-    -- | otherwise      = case nextSibling n of
-      -- Just c  -> getListOfAttribute s (Just c)
-      -- Nothing -> []
+    | otherwise          = getListOfAttribute s ns
 
 getGraphInstance :: [Node] -> GraphType -> GraphInstance
 getGraphInstance [] _ = GraphInstance "" "" [] []
@@ -151,23 +150,17 @@ getDeviceInstances (n:ns) dts
 
 getDeviceProperties :: Node -> [DeviceProperty]
 getDeviceProperties d
-    | length (children d) == 0 = []
-    | otherwise      = parseProperties props
+    | props == [] = []
+    | otherwise  = parseProperties $ strip props
   where
-    p = head $ children d -- TODO: using head hear makes me sad
-    props = if (length $ children p) /= 0
-      then trim $ C.unpack $ inner (head $ children p)
-      else ""
-    trim s = do
-      let f = if (head s == ' ') then tail s else s
-      let r = if (last f == ' ') then init f else f
-      r
+    props = C.unpack $ inner d
 
 parseProperties :: String -> [DeviceProperty]
 parseProperties "" = []
 parseProperties props = map (\(f, s) -> DeviceProperty f s) form
   where
-    sep = map (\s -> splitAt (ind s) s) (splitOn "," props)
+    ps = replace "</P>" "" (replace "<P>" "" props) 
+    sep = map (\s -> splitAt (ind s) s) (splitOn "," ps)
     treat = map (\(p, v) -> ((tail $ init p), drop 2 v)) sep
     form = map (\(p, v) -> (p, v)) treat
     ind s = case (':' `elemIndex` s) of
@@ -198,20 +191,3 @@ parsePath pth dis = EdgeInstance (i first) (o second)
 attributeValue :: Maybe Attribute -> String
 attributeValue (Just a)  = C.unpack $ H.attributeValue $ a
 attributeValue (Nothing) = ""
-
--- getAttribute :: String -> Node -> String
--- getAttribute att n = case Pugi.attribute (pack att) n of
---     Just x  -> unpack x
---     Nothing -> ""
-
--- getName :: Node -> String
--- getName n = unpack $ Pugi.getName n
-
--- getValue :: Node -> String
--- getValue n = unpack $ Pugi.getValue n
-
--- listChildren :: Node -> [Node]
--- listChildren = findChildren . firstChild
---   where
---     findChildren (Just x) = [x] ++ (findChildren $ nextSibling x)
---     findChildren (Nothing) = []

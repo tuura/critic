@@ -19,21 +19,19 @@
                     <Scalar name="rts" type="uint32_t" />
                 </State>
                 <InputPin name="__init__" messageTypeId="__init__">
-                    <OnReceive>
-
-                    </OnReceive>
+                    <OnReceive></OnReceive>
                 </InputPin>
                 <InputPin name="in" messageTypeId="update">
-                    <OnReceive>
-
-                    </OnReceive>
+                    <OnReceive></OnReceive>
                 </InputPin>
                 <OutputPin name="out" messageTypeId="update">
                     <OnSend></OnSend>
                 </OutputPin>
-                <ReadyToSend>
+                <ReadyToSend><![CDATA[
 
-                </ReadyToSend>
+                    *readyToSend = deviceState->rts;
+
+             ]]></ReadyToSend>
             </DeviceType>
         </DeviceTypes>
     </GraphType>

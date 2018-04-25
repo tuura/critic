@@ -208,8 +208,8 @@ data DeviceProperty = DeviceProperty
 
 instance Show DeviceProperty where
     show p = "DeviceProperty\n" ++
-             "                " ++ show (deviceProperty p) ++
-             "                value = " ++ value p
+             show (deviceProperty p) ++ "\n" ++
+             "value = " ++ value p
 
 data EdgeInstance = EdgeInstance
                   {
