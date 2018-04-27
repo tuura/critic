@@ -110,9 +110,9 @@ getDevices (p:ps)
     --         else ""
     --     else ""
     rToS n = C.unpack $ name n
-    -- rToS n = if (length $ children $ head $ getRTS n) /= 0 -- TODO: Applying `head` hear makes me sad
-    --     then C.unpack $ inner (head $ getRTS n)
-    --     else ""
+    rToS n = if (length $ children $ head $ getRTS n) /= 0 -- TODO: Applying `head` hear makes me sad
+        then C.unpack $ inner (head $ getRTS n)
+        else ""
     getRTS n = filter (\c -> (name c) == "ReadyToSend") (children n)
 
 getListOfAttribute :: String -> [Node] -> [Node]

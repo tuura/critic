@@ -19,7 +19,7 @@ library
                       Poets.Critic.Writer,
                       Poets.Graph.GraphAlgebra
     build-depends:    base >= 4.8 && < 4.10,
-                      pugixml, hexml == 0.3.2,
+                      pugixml, hexml >= 0.3.2,
                       extra <= 1.6.3,
                       bytestring == 0.10.*,
                       split == 0.2.3.2,
