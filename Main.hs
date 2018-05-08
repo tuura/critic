@@ -16,7 +16,6 @@ main = do
         Just g  -> do
             let deviceInstances = getDeviceInstances g
                 tree = buildRandomTree deviceInstances
-                algebra = getGraphAlgebra tree
+                -- algebra = getGraphAlgebra tree
+                algebra = getGraphAlgebra $ getEdgeInstances g
             putStrLn algebra
-
-
