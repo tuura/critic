@@ -8,10 +8,10 @@ import Poets.Critic
 import Poets.Critic.Trees
 import Poets.Graph.GraphAlgebra
 
-main :: IO ()  
+main :: IO ()
 main = do
 
-    original <- parseFile "fantasi-test/fantasi-n1-random.xml"
+    original <- parseFile "fantasi-td/fantasi-n2-td.xml"
 
     case original of
         Left  e  -> do
@@ -20,8 +20,9 @@ main = do
         Right n  -> do
             let (Just g) = getGraph n
                 deviceInstances = getDeviceInstances g
-                -- tree = buildRandomTree deviceInstances
-                -- algebra = getGraphAlgebra tree
-            -- putStrLn algebra
-            putStrLn $ show g
+                tree = buildRandomTree deviceInstances
+                algebra = getGraphAlgebra $ fst tree
+                -- algebra = getGraphAlgebra $ getEdgeInstances g
+            putStrLn algebra
+            -- putStrLn $ show g
             putStrLn "Complete"

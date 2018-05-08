@@ -44,8 +44,8 @@
 
                         deviceState->distance = 0xffffffff; // INT_MAX
 
-                        deviceState->rts = deviceProperties->f;
-                        deviceState->busy = deviceProperties->f;
+                        deviceState->rts = deviceProperties->first;
+                        deviceState->busy = deviceProperties->first;
 
                         deviceState->td_child_msgs = 0;
                         deviceState->sentRec = 0;
@@ -79,7 +79,7 @@
                             message->distance = deviceState->distance+1;
                             deviceState->busy = 0;
 
-                            deviceState->sentRec += deviceProperties->conns;
+                            deviceState->sentRec += deviceProperties->connections;
                         ]]></OnSend>
                 </OutputPin>
 
@@ -97,7 +97,7 @@
                             }
                         } else
                         {
-                            if (deviceProperties->r == 1)
+                            if (deviceProperties->root == 1)
                             {
                                 if (message->level == deviceProperties->level)
                                 {
@@ -113,7 +113,7 @@
                                         deviceState->td_sent_rec += message->sentRec;
                                     }
 
-                                    if (deviceState->td_child_msgs == deviceProperties->childs)
+                                    if (deviceState->td_child_msgs == deviceProperties->children)
                                     {
                                         deviceState->td_sent_rec += deviceState->sentRec;
                                         if (deviceState->td_sent_rec == 0)
@@ -146,7 +146,7 @@
                                         deviceState->td_sent_rec += message->sentRec;
                                     }
 
-                                    if (deviceState->td_child_msgs == deviceProperties->childs)
+                                    if (deviceState->td_child_msgs == deviceProperties->children)
                                     {
                                         deviceState->td_rts = 1;
                                     }
@@ -160,7 +160,7 @@
                 <OutputPin name="tree_out" messageTypeId="td">
                     <OnSend><![CDATA[
                         deviceState->td_rts = 0;
-                        if (deviceProperties->r == 1)
+                        if (deviceProperties->root == 1)
                         {
                             deviceState->td_req_received = 1;
                             if (deviceState->busy == 1)
@@ -195,7 +195,7 @@
                                 deviceState->td_child_msgs = 0;
                                 deviceState->td_sent_rec = 0;
                                 deviceState->td_req_received = 0;
-                            } else if (deviceState->td_child_msgs == deviceProperties->childs)
+                            } else if (deviceState->td_child_msgs == deviceProperties->children)
                             {
                                 message->num = deviceState->td_num;
                                 message->level = deviceProperties->level - 1;
@@ -222,7 +222,7 @@
                     if (deviceState->td_rts == 1)
                     {
                         *readyToSend = RTS_FLAG_tree_out;
-                    } else if (deviceProperties->r == 1 && deviceState->td_req_received != 1)
+                    } else if (deviceProperties->root == 1 && deviceState->td_req_received != 1)
                     {
                         *readyToSend = RTS_FLAG_tree_out;
                     }
@@ -233,95 +233,95 @@
     </GraphType>
     <GraphInstance graphTypeId="fantasi" id="graph0">
         <DeviceInstances>
-            <DevI type="flipflop" id="v00">
-                <P>"f": 0, "r": 0, "conns": 3, "childs": 0, "level": 2 </P>
-            </DevI>
-            <DevI type="flipflop" id="v01">
-                <P>"f": 0, "r": 0, "conns": 3, "childs": 3, "level": 2 </P>
-            </DevI>
-            <DevI type="flipflop" id="v02">
-                <P>"f": 0, "r": 0, "conns": 3, "childs": 1, "level": 1</P>
-            </DevI>
-            <DevI type="flipflop" id="v03">
-                <P>"f": 0, "r": 0, "conns": 3, "childs": 0, "level": 2</P>
-            </DevI>
-            <DevI type="flipflop" id="v04">
-                <P>"f": 0, "r": 0, "conns": 2, "childs": 0, "level": 2</P>
-            </DevI>
             <DevI type="flipflop" id="v05">
-                <P>"f": 0, "r": 0, "conns": 4, "childs": 1, "level": 3</P>
-            </DevI>
-            <DevI type="flipflop" id="v06">
-                <P>"f": 0, "r": 0, "conns": 4, "childs": 1, "level": 2</P>
-            </DevI>
-            <DevI type="flipflop" id="v07">
-                <P>"f": 0, "r": 0, "conns": 2, "childs": 5, "level": 1</P>
-            </DevI>
-            <DevI type="flipflop" id="v08">
-                <P>"f": 0, "r": 0, "conns": 3, "childs": 0, "level": 4</P>
-            </DevI>
-            <DevI type="flipflop" id="v09">
-                <P>"f": 0, "r": 0, "conns": 3, "childs": 0, "level": 3</P>
-            </DevI>
-            <DevI type="flipflop" id="v10">
-                <P>"f": 0, "r": 0, "conns": 3, "childs": 0, "level": 3</P>
-            </DevI>
-            <DevI type="flipflop" id="v12">
-                <P>"f": 0, "r": 1, "conns": 4, "childs": 2, "level": 0</P>
+                <P>"connections": 4 ,  "level": 3</P>
             </DevI>
             <DevI type="flipflop" id="v13">
-                <P>"f": 0, "r": 0, "conns": 2, "childs": 1, "level": 2</P>
+                <P>"connections": 2 ,  "children": 2 ,  "level": 2</P>
             </DevI>
-            <DevI type="flipflop" id="v14">
-                <P>"f": 0, "r": 0, "conns": 1, "childs": 0, "level": 3</P>
+            <DevI type="flipflop" id="v01">
+                <P>"connections": 3 ,  "children": 1 ,  "level": 3</P>
+            </DevI>
+            <DevI type="flipflop" id="v02">
+                <P>"connections": 3 ,  "level": 1</P>
+            </DevI>
+            <DevI type="flipflop" id="v07">
+                <P>"connections": 2 ,  "children": 3 ,  "level": 1</P>
+            </DevI>
+            <DevI type="flipflop" id="v12">
+                <P>"connections": 4 ,  "root": 1 ,  "children": 3</P>
             </DevI>
             <DevI type="flipflop" id="v11">
-                <P>"f": 1, "r": 0, "conns": 2, "childs": 0, "level": 3</P>
+                <P>"first": 1 ,  "connections": 2 ,  "level": 1</P>
+            </DevI>
+            <DevI type="flipflop" id="v06">
+                <P>"connections": 4 ,  "level": 3</P>
+            </DevI>
+            <DevI type="flipflop" id="v09">
+                <P>"connections": 3 ,  "children": 1 ,  "level": 4</P>
+            </DevI>
+            <DevI type="flipflop" id="v00">
+                <P>"connections": 3 ,  "children": 1 ,  "level": 2</P>
+            </DevI>
+            <DevI type="flipflop" id="v14">
+                <P>"connections": 1 ,  "level": 3</P>
+            </DevI>
+            <DevI type="flipflop" id="v08">
+                <P>"connections": 3 ,  "children": 1 ,  "level": 5</P>
+            </DevI>
+            <DevI type="flipflop" id="v10">
+                <P>"connections": 3 ,  "level": 6</P>
+            </DevI>
+            <DevI type="flipflop" id="v03">
+                <P>"connections": 3 ,  "children": 2 ,  "level": 2</P>
+            </DevI>
+            <DevI type="flipflop" id="v04">
+                <P>"connections": 2 ,  "level": 3</P>
             </DevI>
         </DeviceInstances>
         <EdgeInstances>
-            <EdgeI path="v05:in-v09:out" />
-            <EdgeI path="v05:in-v01:out" />
-            <EdgeI path="v05:in-v08:out" />
-            <EdgeI path="v05:in-v02:out" />
-            <EdgeI path="v04:in-v01:out" />
-            <EdgeI path="v04:in-v08:out" />
-            <EdgeI path="v07:in-v10:out" />
-            <EdgeI path="v07:in-v03:out" />
-            <EdgeI path="v06:in-v10:out" />
-            <EdgeI path="v06:in-v09:out" />
-            <EdgeI path="v06:in-v03:out" />
-            <EdgeI path="v06:in-v02:out" />
-            <EdgeI path="v01:in-v05:out" />
-            <EdgeI path="v01:in-v04:out" />
-            <EdgeI path="v01:in-v00:out" />
-            <EdgeI path="v00:in-v01:out" />
-            <EdgeI path="v00:in-v03:out" />
-            <EdgeI path="v00:in-v02:out" />
-            <EdgeI path="v03:in-v07:out" />
-            <EdgeI path="v03:in-v06:out" />
-            <EdgeI path="v03:in-v00:out" />
-            <EdgeI path="v02:in-v05:out" />
-            <EdgeI path="v02:in-v06:out" />
-            <EdgeI path="v02:in-v00:out" />
-            <EdgeI path="v12:in-v13:out" />
-            <EdgeI path="v12:in-v11:out" />
-            <EdgeI path="v12:in-v09:out" />
-            <EdgeI path="v12:in-v14:out" />
-            <EdgeI path="v13:in-v12:out" />
-            <EdgeI path="v13:in-v10:out" />
-            <EdgeI path="v10:in-v13:out" />
-            <EdgeI path="v10:in-v07:out" />
-            <EdgeI path="v10:in-v06:out" />
-            <EdgeI path="v11:in-v12:out" />
-            <EdgeI path="v11:in-v08:out" />
-            <EdgeI path="v09:in-v05:out" />
-            <EdgeI path="v09:in-v12:out" />
-            <EdgeI path="v09:in-v06:out" />
-            <EdgeI path="v08:in-v05:out" />
-            <EdgeI path="v08:in-v04:out" />
-            <EdgeI path="v08:in-v11:out" />
-            <EdgeI path="v14:in-v12:out" />
+            <EdgeI path="v05:in-v09:out"/>
+            <EdgeI path="v05:in-v01:out"/>
+            <EdgeI path="v05:in-v08:out"/>
+            <EdgeI path="v05:in-v02:out"/>
+            <EdgeI path="v04:in-v01:out"/>
+            <EdgeI path="v04:in-v08:out"/>
+            <EdgeI path="v07:in-v10:out"/>
+            <EdgeI path="v07:in-v03:out"/>
+            <EdgeI path="v06:in-v10:out"/>
+            <EdgeI path="v06:in-v09:out"/>
+            <EdgeI path="v06:in-v03:out"/>
+            <EdgeI path="v06:in-v02:out"/>
+            <EdgeI path="v01:in-v05:out"/>
+            <EdgeI path="v01:in-v04:out"/>
+            <EdgeI path="v01:in-v00:out"/>
+            <EdgeI path="v00:in-v01:out"/>
+            <EdgeI path="v00:in-v03:out"/>
+            <EdgeI path="v00:in-v02:out"/>
+            <EdgeI path="v03:in-v07:out"/>
+            <EdgeI path="v03:in-v06:out"/>
+            <EdgeI path="v03:in-v00:out"/>
+            <EdgeI path="v02:in-v05:out"/>
+            <EdgeI path="v02:in-v06:out"/>
+            <EdgeI path="v02:in-v00:out"/>
+            <EdgeI path="v12:in-v13:out"/>
+            <EdgeI path="v12:in-v11:out"/>
+            <EdgeI path="v12:in-v09:out"/>
+            <EdgeI path="v12:in-v14:out"/>
+            <EdgeI path="v13:in-v12:out"/>
+            <EdgeI path="v13:in-v10:out"/>
+            <EdgeI path="v10:in-v13:out"/>
+            <EdgeI path="v10:in-v07:out"/>
+            <EdgeI path="v10:in-v06:out"/>
+            <EdgeI path="v11:in-v12:out"/>
+            <EdgeI path="v11:in-v08:out"/>
+            <EdgeI path="v09:in-v05:out"/>
+            <EdgeI path="v09:in-v12:out"/>
+            <EdgeI path="v09:in-v06:out"/>
+            <EdgeI path="v08:in-v05:out"/>
+            <EdgeI path="v08:in-v04:out"/>
+            <EdgeI path="v08:in-v11:out"/>
+            <EdgeI path="v14:in-v12:out"/>
             <EdgeI path="v12:tree_in-v07:tree_out"/>
             <EdgeI path="v07:tree_in-v12:tree_out"/>
             <EdgeI path="v07:tree_in-v13:tree_out"/>
@@ -330,26 +330,26 @@
             <EdgeI path="v05:tree_in-v13:tree_out"/>
             <EdgeI path="v07:tree_in-v03:tree_out"/>
             <EdgeI path="v03:tree_in-v07:tree_out"/>
-            <EdgeI path="v07:tree_in-v01:tree_out"/>
-            <EdgeI path="v01:tree_in-v07:tree_out"/>
+            <EdgeI path="v13:tree_in-v01:tree_out"/>
+            <EdgeI path="v01:tree_in-v13:tree_out"/>
             <EdgeI path="v01:tree_in-v09:tree_out"/>
             <EdgeI path="v09:tree_in-v01:tree_out"/>
             <EdgeI path="v12:tree_in-v02:tree_out"/>
             <EdgeI path="v02:tree_in-v12:tree_out"/>
             <EdgeI path="v07:tree_in-v00:tree_out"/>
             <EdgeI path="v00:tree_in-v07:tree_out"/>
-            <EdgeI path="v01:tree_in-v11:tree_out"/>
-            <EdgeI path="v11:tree_in-v01:tree_out"/>
-            <EdgeI path="v07:tree_in-v06:tree_out"/>
-            <EdgeI path="v06:tree_in-v07:tree_out"/>
-            <EdgeI path="v05:tree_in-v08:tree_out"/>
-            <EdgeI path="v08:tree_in-v05:tree_out"/>
-            <EdgeI path="v01:tree_in-v14:tree_out"/>
-            <EdgeI path="v14:tree_in-v01:tree_out"/>
-            <EdgeI path="v06:tree_in-v10:tree_out"/>
-            <EdgeI path="v10:tree_in-v06:tree_out"/>
-            <EdgeI path="v02:tree_in-v04:tree_out"/>
-            <EdgeI path="v04:tree_in-v02:tree_out"/>
+            <EdgeI path="v12:tree_in-v11:tree_out"/>
+            <EdgeI path="v11:tree_in-v12:tree_out"/>
+            <EdgeI path="v03:tree_in-v06:tree_out"/>
+            <EdgeI path="v06:tree_in-v03:tree_out"/>
+            <EdgeI path="v09:tree_in-v08:tree_out"/>
+            <EdgeI path="v08:tree_in-v09:tree_out"/>
+            <EdgeI path="v00:tree_in-v14:tree_out"/>
+            <EdgeI path="v14:tree_in-v00:tree_out"/>
+            <EdgeI path="v08:tree_in-v10:tree_out"/>
+            <EdgeI path="v10:tree_in-v08:tree_out"/>
+            <EdgeI path="v03:tree_in-v04:tree_out"/>
+            <EdgeI path="v04:tree_in-v03:tree_out"/>
         </EdgeInstances>
     </GraphInstance>
 </Graphs>

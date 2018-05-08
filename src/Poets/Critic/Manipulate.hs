@@ -11,7 +11,7 @@ module Poets.Critic.Manipulate (
     replaceReadyToSendOfDeviceType, addToReadyToSendOfDeviceType,
     addDeviceInstance, removeDeviceInstance,
     addDeviceInstanceProperty, removeDeviceInstanceProperty,
-    addEdgeInstance, removeEdgeInstance
+    addEdgeInstance, removeEdgeInstance, addPropertyToDevI
     ) where
 
 import Poets.Critic.Types
@@ -449,3 +449,10 @@ getEdgeInstancesWithPath eis p = usefulEis
     asPaths = map (\e -> (deviceInstanceID $ inNode e) ++ ":in-"
                ++ (deviceInstanceID $ outNode e) ++ ":out\n")
                 eis
+
+addPropertyToDevI :: DeviceInstance -> DeviceProperty -> DeviceInstance
+addPropertyToDevI d p = DeviceInstance devType insId ps
+  where
+    devType = deviceType d
+    insId = deviceInstanceID d
+    ps = deviceProperties d ++ [p]
