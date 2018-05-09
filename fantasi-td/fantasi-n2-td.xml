@@ -234,31 +234,23 @@
     <GraphInstance graphTypeId="fantasi" id="graph0">
         <DeviceInstances>
             <DevI type="flipflop" id="f000082">
-                <P>"connections": 14 ,  "level": 3</P>
             </DevI>
             <DevI type="flipflop" id="f000051">
-                <P>"connections": 15 ,  "level": 6</P>
             </DevI>
             <DevI type="flipflop" id="f000028">
-                <P>"connections": 5 ,  "children": 1 ,  "level": 1</P>
             </DevI>
             <DevI type="flipflop" id="f000017">
-                <P>"connections": 5 ,  "children": 1 ,  "level": 3</P>
             </DevI>
             <DevI type="flipflop" id="f000018">
-                <P>"connections": 4 ,  "root": 1 ,  "children": 4</P>
+                <P>root": 1</P>
             </DevI>
             <DevI type="flipflop" id="f000006">
-                <P>"connections": 2 ,  "level": 4</P>
             </DevI>
             <DevI type="flipflop" id="f000022">
-                <P>"connections": 1 ,  "children": 1 ,  "level": 5</P>
             </DevI>
             <DevI type="flipflop" id="f000079">
-                <P>"connections": 22 ,  "level": 6</P>
             </DevI>
             <DevI type="flipflop" id="f000040">
-                <P>"connections": 12 ,  "children": 3 ,  "level": 3</P>
             </DevI>
             <DevI type="flipflop" id="f000080">
                 <P>"connections": 19 ,  "level": 5</P>

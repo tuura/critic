@@ -16,7 +16,7 @@ buildRandomTree :: [DeviceInstance] -> ([EdgeInstance], [DeviceInstance])
 buildRandomTree ds = randomTree ds [] []
 
 randomTree :: [DeviceInstance] -> [(DeviceInstance, Children, Level)] -> [EdgeInstance] -> ([EdgeInstance], [DeviceInstance])
-randomTree [] vs cs  = (cs, addProperties vs)
+randomTree [] vs cs = (cs, addProperties vs)
 randomTree ds [] cs = randomTree newDs [(newD, 0, 0)] cs
   where
     d     = getRandomDevice ds
@@ -49,9 +49,7 @@ addProperties :: [(DeviceInstance, Children, Level)] -> [DeviceInstance]
 addProperties [] = []
 addProperties (d:ds) = [setLevel (thd3 d) $ setChildren (snd3 d) (fst3 d)] ++ addProperties ds
   where
-    setLevel 0 x = x
     setLevel l x = addPropertyToDevI x (DeviceProperty "level" (show l))
-    setChildren 0 x = x
     setChildren c x = addPropertyToDevI x (DeviceProperty "children" (show c))
 
 countConnections :: DeviceInstance -> [EdgeInstance] -> Int

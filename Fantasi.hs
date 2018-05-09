@@ -9,6 +9,7 @@ import System.Random
 import Poets.Critic
 import Poets.Critic.Format
 import Poets.Critic.Trees
+import Poets.Graph.GraphAlgebra
 
 main :: IO ()
 main = do
@@ -37,10 +38,12 @@ prepareFile path = do
                               ) con
             --Generate tree
                 treeEdges = buildRandomTree newDis
-
-            putStrLn $ deviceStrings $ snd treeEdges
-            putStrLn $ edgeStrings $ eis
-            putStrLn $ treeStrings $ fst treeEdges
+            writeFile "newInfo.xml" $ treeStrings $ fst treeEdges
+            -- putStrLn $ deviceStrings $ snd treeEdges
+            -- putStrLn $ edgeStrings $ eis
+            -- putStrLn $ treeStrings $ fst treeEdges
+                -- algebra = getGraphAlgebra $ fst treeEdges
+            -- putStrLn algebra
             putStrLn "Complete"
 
 deviceStrings :: [DeviceInstance] -> String
