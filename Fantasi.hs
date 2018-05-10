@@ -36,14 +36,23 @@ prepareFile path = do
                         addPropertyToDevI d
                         (DeviceProperty "connections" (show c))
                               ) con
-            --Generate tree
-                treeEdges = buildRandomTree newDis
-            writeFile "newInfo.xml" $ treeStrings $ fst treeEdges
+            --Generate Random tree
+                -- treeEdges = buildRandomTree newDis
+            -- writeFile "newInfo.xml" $ treeStrings $ fst treeEdges
             -- putStrLn $ deviceStrings $ snd treeEdges
             -- putStrLn $ edgeStrings $ eis
             -- putStrLn $ treeStrings $ fst treeEdges
                 -- algebra = getGraphAlgebra $ fst treeEdges
             -- putStrLn algebra
+
+            -- Generate "Balanced" tree
+                treeEdges = buildBalancedTree newDis
+                -- algebra = getGraphAlgebra $ fst treeEdges
+            -- putStrLn $ deviceStrings $ snd treeEdges
+            -- putStrLn $ treeStrings $ fst treeEdges
+            -- putStrLn algebra
+            writeFile "newInfo.xml" $ treeStrings $ fst treeEdges
+            -- writeFile "newInfo.xml" $ deviceStrings $ snd treeEdges
             putStrLn "Complete"
 
 deviceStrings :: [DeviceInstance] -> String
