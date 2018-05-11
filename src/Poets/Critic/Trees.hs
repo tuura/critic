@@ -1,11 +1,13 @@
 module Poets.Critic.Trees where
 
 import Data.List
+import Data.Time.Clock
 
 import Poets.Critic.Manipulate
 import Poets.Critic.Types
 
 import System.Random
+import System.IO.Unsafe
 
 data TreeNode = TreeNode
                 {
@@ -51,6 +53,11 @@ balancedTree (dl:dls) vs cs = balancedTree dls newVs (cs ++ fst (connect vs))
     newVs = if length levelSet /= 1 then [levelSet] ++ [snd $ connect vs] ++ delete botLevel vs
                                     else [snd $ connect vs] ++ delete botLevel vs
 
+-- buildNTree :: [DeviceInstance] -> ([EdgeInstance], [DeviceInstance])
+-- buildNTree ds = nTree dls [] []
+--   where
+--     root = getRandomDevice
+
 connectLevels :: [TreeNode] -> [TreeNode] -> ([EdgeInstance], [TreeNode])
 connectLevels [] _ = ([], [])
 connectLevels bs ts  = connectLevels' bs ts []
@@ -85,12 +92,20 @@ getNRandomDevices n ds = [d] ++ getNRandomDevices (n - 1) newDs
 
 getRandomDevice :: [a] -> a
 getRandomDevice ds = do
-    let r = fst $ randomR (0, (n - 1)) g
-        x = ds !! r
-    x
-  where
-    n = length ds
-    g = mkStdGen n
+    let t = unsafePerformIO getCurrentTime
+        time = fromInteger $ diffTimeToPicoseconds $ utctDayTime t
+    -- gen <- mkStdGen time
+    let n = length ds
+    let r = fst $ randomR (0, (n - 1)) (mkStdGen time)
+    -- let n = length ds
+        -- r = fst $ randomR (0, (n - 1)) gen
+    ds !! r
+
+-- getGen :: Int
+-- getGen = mkStdGen $ fromInteger $ diffTimeToPicoseconds $ utctDayTime time
+--     -- time <- getCurrentTime
+--   where
+--     time = getCurrentTime
 
 connectDevices :: DeviceInstance -> DeviceInstance -> [EdgeInstance]
 connectDevices d1 d2 = [e1, e2]

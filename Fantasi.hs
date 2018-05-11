@@ -48,10 +48,10 @@ prepareFile path = do
             -- Generate "Balanced" tree
                 treeEdges = buildBalancedTree newDis
                 -- algebra = getGraphAlgebra $ fst treeEdges
-            -- putStrLn $ deviceStrings $ snd treeEdges
-            -- putStrLn $ treeStrings $ fst treeEdges
+            putStrLn $ deviceStrings $ snd treeEdges
+            putStrLn $ treeStrings $ fst treeEdges
             -- putStrLn algebra
-            writeFile "newInfo.xml" $ treeStrings $ fst treeEdges
+            -- writeFile "newInfo.xml" $ treeStrings $ fst treeEdges
             -- writeFile "newInfo.xml" $ deviceStrings $ snd treeEdges
             putStrLn "Complete"
 
