@@ -55,7 +55,7 @@ prepareFile path = do
             -- writeFile "newInfo.xml" $ deviceStrings $ snd treeEdges
 
             -- Generate N tree
-                treeEdges = buildNTree newDis 4
+                treeEdges = buildNTree newDis 6
                 algebra = getGraphAlgebra $ fst treeEdges
 
             -- putStrLn $ deviceStrings $ snd treeEdges
