@@ -20,7 +20,7 @@
         <DeviceTypes>
             <DeviceType id="flipflop">
                 <Properties>
-                    <Scalar type="uint32_t" name="first"/>
+                    <Scalar type="uint32_t" name="first" default="0"/>
                     <Scalar type="uint32_t" name="root"/>
                     <Scalar type="uint32_t" name="connections"/>
                     <Scalar type="uint32_t" name="children"/>

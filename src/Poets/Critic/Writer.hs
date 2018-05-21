@@ -46,23 +46,26 @@ getMessageTypesElements [] _ = return ()
 getMessageTypesElements (m:ms) mts = do
     mt <- appendElement "MessageType" mts
     appendAttr "id" (pack $ messageID m) mt
-    getMessageElements (message m) mt
+    getMessageElements (messages m) mt
     getMessageTypesElements ms mts
 
-getMessageElements :: Message -> MutableNode ('Element) -> Modify ()
-getMessageElements (Message [] []) _ = return ()
-getMessageElements (Message x []) mt = do
+getMessageElements :: [Message] -> MutableNode ('Element) -> Modify ()
+getMessageElements [] _ = return ()
+getMessageElements ((Message x []):ms) mt = do
     m <- appendElement "Message" mt
     s <- appendElement "Scalar" m
     appendAttr "name" (pack x) s
-getMessageElements (Message [] x) mt = do
+    getMessageElements ms mt
+getMessageElements ((Message [] x):ms) mt = do
     m <- appendElement "Message" mt
     s <- appendElement "Scalar" m
     appendAttr "type" (pack x) s
-getMessageElements (Message x y) mt = do
+    getMessageElements ms mt
+getMessageElements ((Message x y):ms) mt = do
     m <- appendElement "Message" mt
     s <- appendElement "Scalar" m
     appendAttrs [("name", pack x), ("type", pack y)] s
+    getMessageElements ms mt
 
 getDeviceTypesElements :: [DeviceType] -> MutableNode ('Element) -> Modify ()
 getDeviceTypesElements [] _ = return ()

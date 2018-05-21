@@ -23,7 +23,7 @@ addMessageType g i = Graph (xmlns g) newGt (graphInstance g)
   where
     gt = getGraphType g
     mts = getMessageTypes g
-    newMts = mts ++ [MessageType i (Message "" "")]
+    newMts = mts ++ [MessageType i []]
     newGt = GraphType (graphTypeID gt) newMts (deviceTypes gt)
 
 -- If the message type does not exist this returns the original graph
@@ -51,7 +51,8 @@ addMessageToMessageType g n t mtid
     gt = getGraphType g
     mts = getMessageTypes g
     mtWithID = head $ getMessageTypesOfID mts mtid
-    newMts = (delete mtWithID mts) ++ [MessageType mtid m]
+    newMs = messages mtWithID ++ [m]
+    newMts = (delete mtWithID mts) ++ [MessageType mtid newMs]
     newGt = GraphType (graphTypeID gt) newMts (deviceTypes gt)
 
 -- If message type or message does not exist, this returns the original graph
@@ -65,7 +66,9 @@ removeMessageFromMessageType g mtid
     gt = getGraphType g
     mts = getMessageTypes g
     mtWithID = head $ getMessageTypesOfID mts mtid
-    newMts = (delete mtWithID mts) ++ [MessageType (messageID mtWithID) m]
+    ms = messages mtWithID
+    newMs = delete m ms
+    newMts = (delete mtWithID mts) ++ [MessageType (messageID mtWithID) newMs]
     newGt = GraphType (graphTypeID gt) newMts (deviceTypes gt)
 
 getMessageTypesOfID :: [MessageType] -> String -> [MessageType]

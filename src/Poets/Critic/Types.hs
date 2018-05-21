@@ -59,23 +59,23 @@ getDeviceType g i = head $ filter (\s -> deviceID s == i) dts
 data MessageType = MessageType
                   {
                       messageID :: String,
-                      message   :: Message
+                      messages  :: [Message]
                   } deriving Eq
 
 instance Show MessageType where
     show m = "MessageType\n" ++
              "        id = " ++ messageID m ++ "\n" ++
-             "            " ++ (show $ message m) ++ "\n"
+             "            " ++ (show $ messages m) ++ "\n"
 
 data Message = Message
              {
-                 name        :: String,
+                 messageName :: String,
                  messageType :: String
              } deriving Eq
 
 instance Show Message where
     show m = "Message\n" ++
-             "            name = " ++ name m ++ "\n" ++
+             "            name = " ++ messageName m ++ "\n" ++
              "            type = " ++ messageType m
 
 data DeviceType = DeviceType
