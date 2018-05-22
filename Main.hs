@@ -17,19 +17,7 @@ main = do
     case parsed of
         Left e  -> putStrLn $ show e
         Right n -> do
-            putStrLn $ show $ getGraph n
+            let graph = getGraph n
             putStrLn "Success"
-            -- let deviceInstances = getDeviceInstances g
-                -- tree = buildRandomTree deviceInstances
-                -- algebra = getGraphAlgebra tree
-                -- algebra = getGraphAlgebra $ getEdgeInstances g
-            -- putStrLn g
-
-    -- case getGraph original of
-    --     Nothing -> putStrLn "Failed"
-    --     Just g  -> putStrLn "Success"
-    --         -- let deviceInstances = getDeviceInstances g
-    --             -- tree = buildRandomTree deviceInstances
-    --             -- algebra = getGraphAlgebra tree
-    --             -- algebra = getGraphAlgebra $ getEdgeInstances g
-    --         -- putStrLn g
+            printXML graph
+            printXMLtoFile graph "test.xml"

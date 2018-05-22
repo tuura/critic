@@ -5,6 +5,7 @@ module Poets.Critic.Parser (
 import Data.ByteString.Char8 (unpack, ByteString)
 import qualified Data.ByteString.Char8 as BS
 import Data.List
+import Data.List.Split
 
 import Xeno.DOM
 import Xeno.Types
@@ -153,17 +154,25 @@ getDeviceInstances (n:ns) dts
     nm = name n
 
 getDeviceProperties :: Node -> [DeviceProperty]
-getDeviceProperties d -- = [DeviceProperty (unpack $ name $ head cs) (show $ (unpack $ name $ head cs) == "P")]
+getDeviceProperties d
     | cs == []  = []
-    | otherwise = concatMap props ps
+    | otherwise = concatMap (\(Text b) -> parseProperties (unpack $ b)) xs
   where
     ps = getChildrenWithName "P" d
     cs = children d
-    props p = concatMap (\x ->
-                  DeviceProperty
-                    (unpack $ fst x)
-                    (unpack $ snd x)
-                  ) (concatMap attributes cs)
+    xs = concatMap contents ps
+
+parseProperties :: String -> [DeviceProperty]
+parseProperties props = map (\(f, s) -> DeviceProperty f s) form
+  where
+    sep = map (\s -> splitAt (ind s) s) (splitOn "," props)
+    treat = map (\(p, v) -> ((tail $ init p), drop 2 v)) sep
+    form = map (\(p, v) -> if (p !! 0) == '\"'
+                    then (tail p, v)
+                    else (p, v)) treat
+    ind s = case (':' `elemIndex` s) of
+      Just n  -> n
+      Nothing -> 0
 
 getEdgeInstances :: [Node] -> [DeviceInstance] -> [EdgeInstance]
 getEdgeInstances _ [] = []

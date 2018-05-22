@@ -158,7 +158,9 @@ getDeviceInstancePropertyElements (p:ps) dp = do
     _ <- appendPCData (pack $ propString) dp
     getDeviceInstancePropertyElements ps dp
   where
-    propString = "\"" ++ (deviceProperty p) ++ "\": " ++ value p
+    propString = if length ps /= 0
+        then "\"" ++ (deviceProperty p) ++ "\": " ++ value p ++ ","
+        else "\"" ++ (deviceProperty p) ++ "\": " ++ value p
 
 getEdgeInstanceElements :: [EdgeInstance] -> MutableNode ('Element) -> Modify ()
 getEdgeInstanceElements [] _ = return ()
