@@ -11,7 +11,7 @@ module Poets.Critic.Manipulate (
     replaceReadyToSendOfDeviceType, addToReadyToSendOfDeviceType,
     addDeviceInstance, removeDeviceInstance,
     addDeviceInstanceProperty, removeDeviceInstanceProperty,
-    addEdgeInstance, removeEdgeInstance
+    addEdgeInstance, removeEdgeInstance, addPropertyToDevI
     ) where
 
 import Poets.Critic.Types
@@ -57,12 +57,12 @@ addMessageToMessageType g n t mtid
 
 -- If message type or message does not exist, this returns the original graph
 -- An error needs to be printed explaining so to the user
-removeMessageFromMessageType :: Graph -> String -> Graph
-removeMessageFromMessageType g mtid
+removeMessageFromMessageType :: Graph -> String -> String -> Graph
+removeMessageFromMessageType g mtid mid
     | (length $ getMessageTypesOfID mts mtid) /= 1 = g
     | otherwise = Graph (xmlns g) newGt (graphInstance g)
   where
-    m = Message "" ""
+    m = head $ getMessagesWithName (messages mtWithID) mid -- TODO: Using head here makes me sad.
     gt = getGraphType g
     mts = getMessageTypes g
     mtWithID = head $ getMessageTypesOfID mts mtid
@@ -75,6 +75,11 @@ getMessageTypesOfID :: [MessageType] -> String -> [MessageType]
 getMessageTypesOfID mts i = mtsWithID
   where
     mtsWithID = filter (\(MessageType n _) -> n == i) mts
+
+getMessagesWithName :: [Message] -> String -> [Message]
+getMessagesWithName ms i = msWithID
+  where
+    msWithID = filter (\(Message n _) -> n == i) ms
 
 -- Needs a check that the type doesn't already exist
 addDeviceType :: Graph -> String -> Graph
@@ -445,3 +450,10 @@ getEdgeInstancesWithPath eis p = usefulEis
     asPaths = map (\e -> (deviceInstanceID $ inNode e) ++ ":in-"
                ++ (deviceInstanceID $ outNode e) ++ ":out\n")
                 eis
+
+addPropertyToDevI :: DeviceInstance -> DeviceProperty -> DeviceInstance
+addPropertyToDevI d p = DeviceInstance devType insId ps
+  where
+    devType = deviceType d
+    insId = deviceInstanceID d
+    ps = deviceProperties d ++ [p]

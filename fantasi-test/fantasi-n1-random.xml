@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="ASCII"?>
+<Graphs xmlns="https://poets-project.org/schemas/virtual-graph-schema-v2">
+    <GraphType id="fantasi">
+        <MessageTypes>
+            <MessageType id="__init__" />
+            <MessageType id="update">
+                <Message>
+                    <Scalar name="distance" type="uint32_t" />
+                </Message>
+            </MessageType>
+        </MessageTypes>
+        <DeviceTypes>
+            <DeviceType id="flipflop">
+                <Properties>
+                    <Scalar type="uint8_t" name="first" default="0" />
+                </Properties>
+                <State>
+                    <Scalar name="distance" type="uint32_t" />
+                    <Scalar name="rts" type="uint32_t" />
+                </State>
+                <InputPin name="__init__" messageTypeId="__init__">
+                    <OnReceive></OnReceive>
+                </InputPin>
+                <InputPin name="in" messageTypeId="update">
+                    <OnReceive></OnReceive>
+                </InputPin>
+                <OutputPin name="out" messageTypeId="update">
+                    <OnSend></OnSend>
+                </OutputPin>
+                <ReadyToSend><![CDATA[
+
+                    *readyToSend = deviceState->rts;
+
+             ]]></ReadyToSend>
+            </DeviceType>
+        </DeviceTypes>
+    </GraphType>
+    <GraphInstance graphTypeId="fantasi" id="graph0">
+        <DeviceInstances>
+            <DevI type="flipflop" id="v00" />
+            <DevI type="flipflop" id="v01" />
+            <DevI type="flipflop" id="v02" />
+            <DevI type="flipflop" id="v03" />
+            <DevI type="flipflop" id="v04" />
+            <DevI type="flipflop" id="v05" />
+            <DevI type="flipflop" id="v06" />
+            <DevI type="flipflop" id="v07" />
+            <DevI type="flipflop" id="v08" />
+            <DevI type="flipflop" id="v09" />
+            <DevI type="flipflop" id="v10" />
+            <DevI type="flipflop" id="v12" />
+            <DevI type="flipflop" id="v13" />
+            <DevI type="flipflop" id="v14" />
+            <DevI type="flipflop" id="v11">
+                <P>"first": 1</P>
+            </DevI>
+        </DeviceInstances>
+        <EdgeInstances>
+            <EdgeI path="v05:in-v09:out" />
+            <EdgeI path="v05:in-v01:out" />
+            <EdgeI path="v05:in-v08:out" />
+            <EdgeI path="v05:in-v02:out" />
+            <EdgeI path="v04:in-v01:out" />
+            <EdgeI path="v04:in-v08:out" />
+            <EdgeI path="v07:in-v10:out" />
+            <EdgeI path="v07:in-v03:out" />
+            <EdgeI path="v06:in-v10:out" />
+            <EdgeI path="v06:in-v09:out" />
+            <EdgeI path="v06:in-v03:out" />
+            <EdgeI path="v06:in-v02:out" />
+            <EdgeI path="v01:in-v05:out" />
+            <EdgeI path="v01:in-v04:out" />
+            <EdgeI path="v01:in-v00:out" />
+            <EdgeI path="v00:in-v01:out" />
+            <EdgeI path="v00:in-v03:out" />
+            <EdgeI path="v00:in-v02:out" />
+            <EdgeI path="v03:in-v07:out" />
+            <EdgeI path="v03:in-v06:out" />
+            <EdgeI path="v03:in-v00:out" />
+            <EdgeI path="v02:in-v05:out" />
+            <EdgeI path="v02:in-v06:out" />
+            <EdgeI path="v02:in-v00:out" />
+            <EdgeI path="v12:in-v13:out" />
+            <EdgeI path="v12:in-v11:out" />
+            <EdgeI path="v12:in-v09:out" />
+            <EdgeI path="v12:in-v14:out" />
+            <EdgeI path="v13:in-v12:out" />
+            <EdgeI path="v13:in-v10:out" />
+            <EdgeI path="v10:in-v13:out" />
+            <EdgeI path="v10:in-v07:out" />
+            <EdgeI path="v10:in-v06:out" />
+            <EdgeI path="v11:in-v12:out" />
+            <EdgeI path="v11:in-v08:out" />
+            <EdgeI path="v09:in-v05:out" />
+            <EdgeI path="v09:in-v12:out" />
+            <EdgeI path="v09:in-v06:out" />
+            <EdgeI path="v08:in-v05:out" />
+            <EdgeI path="v08:in-v04:out" />
+            <EdgeI path="v08:in-v11:out" />
+            <EdgeI path="v14:in-v12:out" />
+        </EdgeInstances>
+    </GraphInstance>
+</Graphs>

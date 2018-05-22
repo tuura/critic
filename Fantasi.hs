@@ -3,6 +3,7 @@
 module Main where
 
 import Data.List
+import qualified Data.ByteString.Char8 as C (readFile, pack, unpack, ByteString)
 import System.Environment
 import System.Random
 import Poets.Critic
@@ -19,7 +20,6 @@ main = do
 prepareFile :: String -> IO ()
 prepareFile path = do
     graph <- parseFile path
-
     case getGraph graph of
         Nothing -> putStrLn "Error: Graph cannot be parsed"
         Just g  -> do

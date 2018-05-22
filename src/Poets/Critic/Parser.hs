@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Poets.Critic.Parser (
   getFile, parseFile, getGraph
   ) where
@@ -6,6 +8,7 @@ import Data.ByteString.Char8 (unpack, ByteString)
 import qualified Data.ByteString.Char8 as BS
 import Data.List
 import Data.List.Split
+import Data.String.Utils
 
 import Xeno.DOM
 import Xeno.Types
@@ -163,9 +166,11 @@ getDeviceProperties d
     xs = concatMap contents ps
 
 parseProperties :: String -> [DeviceProperty]
+parseProperties "" = []
 parseProperties props = map (\(f, s) -> DeviceProperty f s) form
   where
-    sep = map (\s -> splitAt (ind s) s) (splitOn "," props)
+    ps = replace "</P>" "" (replace "<P>" "" props)
+    sep = map (\s -> splitAt (ind s) s) (splitOn "," ps)
     treat = map (\(p, v) -> ((tail $ init p), drop 2 v)) sep
     form = map (\(p, v) -> if (p !! 0) == '\"'
                     then (tail p, v)
