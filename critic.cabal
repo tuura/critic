@@ -25,6 +25,8 @@ library
                       split == 0.2.3.2,
                       random == 1.1,
                       MissingH == 1.4.0.1,
+                      xeno >= 0.2,
+                      filepath,
                       time >= 1.6
     default-language: Haskell2010
     other-extensions: TypeFamilies
@@ -36,7 +38,8 @@ executable critic
                       pugixml,
                       extra <= 1.6.3,
                       bytestring == 0.10.*,
-                      critic
+                      critic,
+                      xeno >= 0.2
     other-extensions: TypeFamilies
     default-language: Haskell2010
     GHC-options:      -Wall -fno-warn-name-shadowing -fwarn-tabs -O2

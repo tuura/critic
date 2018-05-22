@@ -51,7 +51,6 @@ getMessageTypesElements (m:ms) mts = do
 
 getMessageElements :: [Message] -> MutableNode ('Element) -> Modify ()
 getMessageElements [] _ = return ()
-getMessageElements ((Message [] []):ms) mt = getMessageElements ms mt
 getMessageElements ((Message x []):ms) mt = do
     m <- appendElement "Message" mt
     s <- appendElement "Scalar" m
@@ -159,7 +158,9 @@ getDeviceInstancePropertyElements (p:ps) dp = do
     _ <- appendPCData (pack $ propString) dp
     getDeviceInstancePropertyElements ps dp
   where
-    propString = "\"" ++ (deviceProperty p) ++ "\": " ++ value p
+    propString = if length ps /= 0
+        then "\"" ++ (deviceProperty p) ++ "\": " ++ value p ++ ","
+        else "\"" ++ (deviceProperty p) ++ "\": " ++ value p
 
 getEdgeInstanceElements :: [EdgeInstance] -> MutableNode ('Element) -> Modify ()
 getEdgeInstanceElements [] _ = return ()

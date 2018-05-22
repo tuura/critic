@@ -100,7 +100,6 @@ connectLevels' (b:bs) (t:ts) vs
     newT = TreeNode (devI t) (children t + 1) (level t)
     nxt = connectLevels' bs ts (vs ++ [newT])
 
-
 getRandomDevice :: [a] -> a
 getRandomDevice ds = do
     let t = unsafePerformIO getCurrentTime

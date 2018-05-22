@@ -160,7 +160,6 @@
 
                 ]]></OnReceive>
                 </InputPin>
-
                 <OutputPin name="tree_out" messageTypeId="td">
                     <OnSend><![CDATA[
 
@@ -217,7 +216,6 @@
 
                  ]]></OnSend>
                 </OutputPin>
-
                 <ReadyToSend><![CDATA[
                     if (deviceState->rts == 1)
                     {
@@ -237,7 +235,7 @@
         </DeviceTypes>
     </GraphType>
     <GraphInstance graphTypeId="fantasi" id="graph0">
-    <DeviceInstances>
+        <DeviceInstances>
             <DevI type="flipflop" id="f000335">
                 <P>"connections": 7 ,  "children": 0 ,  "level": 6</P>
             </DevI>
@@ -1285,8 +1283,8 @@
             <DevI type="flipflop" id="f000125">
                 <P>"connections": 10 ,  "children": 0 ,  "level": 3</P>
             </DevI>
-    </DeviceInstances>
-    <EdgeInstances>
+        </DeviceInstances>
+        <EdgeInstances>
             <EdgeI path="f000154:in-f000264:out"/>
             <EdgeI path="f000154:in-f000229:out"/>
             <EdgeI path="f000154:in-f000109:out"/>
@@ -8289,6 +8287,6 @@
             <EdgeI path="f000268:tree_in-f000317:tree_out"/>
             <EdgeI path="f000188:tree_in-f000125:tree_out"/>
             <EdgeI path="f000125:tree_in-f000188:tree_out"/>
-    </EdgeInstances>
-</GraphInstance>
+        </EdgeInstances>
+    </GraphInstance>
 </Graphs>
