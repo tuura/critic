@@ -48,7 +48,7 @@ viewMessageTypes g = putStrLn $ unlines $ getMessageTypesInfo mts
 getMessageTypesInfo :: [MessageType] -> [String]
 getMessageTypesInfo mts =
     concatMap (\mt -> ["Message type ID: " ++ messageID mt]
-                  ++ [getMessageInfo $ message mt]) mts
+                  ++ (map (\m -> getMessageInfo m) (messages mt))) mts
 
 getMessageInfo :: Message -> String
 getMessageInfo (Message n t)

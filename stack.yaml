@@ -1,5 +1,7 @@
+flags: {}
 packages:
 - location: .
 extra-deps:
 - pugixml-0.3.3
+- xeno-0.3.4
 resolver: lts-7.24

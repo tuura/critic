@@ -1,178 +1,188 @@
 module Poets.Critic.Parser (
-    getGraph, parseFile
-    ) where
+  getFile, parseFile, getGraph
+  ) where
 
-import Data.ByteString.Char8 (pack, unpack)
+import Data.ByteString.Char8 (unpack, ByteString)
+import qualified Data.ByteString.Char8 as BS
 import Data.List
 import Data.List.Split
 
-import Text.XML.Pugi hiding (getName, getValue, parseFile)
-import qualified Text.XML.Pugi as Pugi
+import Xeno.DOM
+import Xeno.Types
 
 import Poets.Critic.Types hiding (getGraphInstance, getDeviceInstances,
                                   getEdgeInstances, getGraphType)
 
-getGraph :: Document -> Maybe Graph
-getGraph d = generateGraph $ firstChild d
+parseFile :: ByteString -> Either XenoException Node
+parseFile r = parse r
 
-parseFile :: String -> IO Document
-parseFile p = Pugi.parseFile (ParseConfig parseFull encodingAuto) p
+getFile :: String -> IO ByteString
+getFile p = BS.readFile p
 
-generateGraph :: Maybe Node -> Maybe Graph
-generateGraph (Nothing) = Nothing
-generateGraph (Just n)  = case getName n of
-    "xml"     -> generateGraph $ nextSibling n
-    "Graphs"  -> Just (Graph (getAttribute "xmlns" n) gt gi)
-    _ -> Nothing
+getGraph :: Node -> Graph
+getGraph n = Graph (getAttribute "xmlns" n) gt gi
   where
-    gt = getGraphType $ firstChild n
-    gi = getGraphInstance (firstChild n) gt
+    gt = getGraphType cs
+    gi = getGraphInstance cs gt
+    cs = children n
 
-getGraphType :: Maybe Node -> GraphType
-getGraphType Nothing = GraphType "" [] []
-getGraphType (Just n)
-    | getName n == "GraphType" = GraphType (getAttribute "id" n)
-                                           (getMessages $ firstChild n)
-                                           (getDevices $ firstChild n)
-    | otherwise = getGraphType $ nextSibling n
+getGraphType :: [Node] -> GraphType
+getGraphType [] = GraphType [] [] []
+getGraphType (n:ns)
+    | (unpack $ name n) == "GraphType" = GraphType (getAttribute "id" n)
+                                        (getMessages cs)
+                                        (getDevices cs)
+    | otherwise = getGraphType ns
+  where
+    cs = children n
 
-getMessages :: Maybe Node -> [MessageType]
-getMessages Nothing  = []
-getMessages (Just p)
-    | getName p == "MessageTypes" =
-    (concatMap (\n -> case getName n of
+getMessages :: [Node] -> [MessageType]
+getMessages [] = []
+getMessages (n:ns)
+    | unpack nm == "MessageTypes" =
+    concatMap (\c -> case (unpack $ name c) of
         "MessageType" -> [MessageType
-                          (getAttribute "id" n)
-                          (getMessage n)]
+                          (getAttribute "id" c)
+                          (getMessageData (children c))]
         _             -> []
-    ) (listChildren $ p))
-    | otherwise = getMessages $ nextSibling p
+    ) cs
+    | otherwise = getMessages ns
   where
-    getMessage n = case firstChild n of
-        (Just x) -> Message
-                (getChildName (firstChild x))
-                (getChildType (firstChild x))
-        Nothing  -> Message "" ""
-    getChildName (Just c)  = getAttribute "name" c
-    getChildName (Nothing) = ""
-    getChildType (Just c)  = getAttribute "type" c
-    getChildType (Nothing) = ""
+    nm = name n
+    cs = children n
 
-getDevices :: Maybe Node -> [DeviceType]
-getDevices Nothing  = []
-getDevices (Just p)
-    | getName p == "DeviceTypes" =
-          concatMap (\n -> case getName n of
+getMessageData :: [Node] -> [Message]
+getMessageData [] = []
+getMessageData (n:ns) = map (\c ->
+                      Message
+                        (getChildName c)
+                        (getChildType c)
+                      ) cs ++ getMessageData ns
+  where
+    cs = children n
+    getChildName c = getAttribute "name" c
+    getChildType c = getAttribute "type" c
+
+getDevices :: [Node] -> [DeviceType]
+getDevices [] = []
+getDevices (n:ns)
+    | unpack nm == "DeviceTypes" =
+          concatMap (\c -> case (unpack $ name c) of
               "DeviceType" -> [DeviceType
-                  (getAttribute "id" n)
-                  (ps n)
-                  (sts n)
-                  (inPs n)
-                  (outPs n)
-                  (rToS n)
-                  ] ++ (getDevices $ nextSibling n)
-              _            -> []) (listChildren p)
-    | otherwise = getDevices $ nextSibling p
+                  (getAttribute "id" c)
+                  (getPropertyData $ getChildrenWithName "Properties" c)
+                  (getStateData $ getChildrenWithName "State" c)
+                  (inPs c)
+                  (outPs c)
+                  (rToS $ children c)
+                  ] ++ (getDevices ns)
+              _            -> []) (children n)
+    | otherwise = getDevices ns
   where
-    ps n = concatMap (\c ->
-        [Property (getAttribute "type" c)
-                  (getAttribute "name" c)
-                  (getAttribute "default" c)]
-        ) (getListOfAttribute "Properties" (firstChild n))
-    sts n = concatMap (\c ->
-        [State (getAttribute "name" c)
-               (getAttribute "type" c)]
-        ) (getListOfAttribute "State" (firstChild n))
-    getInputs n = filter (\c -> (getName c) == "InputPin") (listChildren n)
-    inPs n = map (\i -> InputPin
+    nm = name n
+    inPs p = map (\i -> InputPin
                         (getAttribute "name" i)
                         (getAttribute "messageTypeId" i)
-                        (onRec $ firstChild i)
-                    ) (getInputs n)
-    onRec (Just i) = if (getName i) == "OnReceive"
-        then case firstChild $ i of
-            Just x  -> getValue x
-            Nothing -> ""
-        else onRec $ nextSibling i
-    onRec (Nothing) = ""
-    getOutputs n = filter (\c -> (getName c) == "OutputPin") (listChildren n)
-    outPs n = map (\i -> OutputPin
+                        (concatMap onRec (children i))
+                    ) (getChildrenWithName "InputPin" p)
+    onRec i = if (unpack $ name i) == "OnReceive"
+        then getCData $ contents i
+        else []
+    outPs p = map (\i -> OutputPin
                         (getAttribute "name" i)
                         (getAttribute "messageTypeId" i)
-                        (onSen $ firstChild i)
-                     ) (getOutputs n)
-    onSen (Just o) = if (getName o) == "OnSend"
-        then case firstChild o of
-            Just x  -> getValue x
-            Nothing -> ""
-        else onSen $ nextSibling o
-    onSen (Nothing) = ""
-    rToS n = case firstChild $ head $ getRTS n of
-        Just x  -> getValue x
-        Nothing -> ""
-    getRTS n = filter (\c -> (getName c) == "ReadyToSend") (listChildren n)
+                        (concatMap onSen (children i))
+                     ) (getChildrenWithName "OutputPin" p)
+    onSen o = if (unpack $ name o) == "OnSend"
+        then getCData $ contents o
+        else []
+    rToS [] = []
+    rToS (p:pins) = if (unpack $ name p) == "ReadyToSend"
+        then getCData $ contents p
+        else rToS pins
 
-getListOfAttribute :: String -> Maybe Node -> [Node]
-getListOfAttribute _ (Nothing) = []
-getListOfAttribute s (Just n)
-    | getName n == s = listChildren n
-    | otherwise      = case nextSibling n of
-      Just c  -> getListOfAttribute s (Just c)
-      Nothing -> []
+getStateData :: [Node] -> [State]
+getStateData [] = []
+getStateData (n:ns) = map (\c ->
+                      State
+                        (getChildName c)
+                        (getChildType c)
+                      ) cs ++ getStateData ns
+  where
+    cs = children n
+    getChildName c = getAttribute "name" c
+    getChildType c = getAttribute "type" c
 
-getGraphInstance :: Maybe Node -> GraphType -> GraphInstance
-getGraphInstance Nothing _ = GraphInstance "" "" [] []
-getGraphInstance (Just n) gt
-    | getName n == "GraphInstance" = GraphInstance
+getPropertyData :: [Node] -> [Property]
+getPropertyData [] = []
+getPropertyData (n:ns) = map (\c ->
+                      Property
+                        (getChildName c)
+                        (getChildType c)
+                        (getDefaultValue c)
+                      ) cs ++ getPropertyData ns
+  where
+    cs = children n
+    getChildName c = getAttribute "name" c
+    getChildType c = getAttribute "type" c
+    getDefaultValue c = getAttribute "default" c
+
+getGraphInstance :: [Node] -> GraphType -> GraphInstance
+getGraphInstance [] _ = GraphInstance [] [] [] []
+getGraphInstance (n:ns) gt
+    | unpack nm == "GraphInstance" = GraphInstance
                                          (getAttribute "graphTypeId" n)
                                          (getAttribute "id" n)
                                          dis eis
-    | otherwise = getGraphInstance (nextSibling n) gt
+    | otherwise = getGraphInstance ns gt
   where
-    dis = getDeviceInstances (firstChild n) (deviceTypes gt)
-    eis = getEdgeInstances (firstChild n) dis
+    nm = name n
+    dis = getDeviceInstances (children n) (deviceTypes gt)
+    eis = getEdgeInstances (children n) dis
 
-getDeviceInstances :: Maybe Node -> [DeviceType] -> [DeviceInstance]
-getDeviceInstances Nothing _ = []
-getDeviceInstances (Just n) dts
-    | getName n == "DeviceInstances" = map (\c -> DeviceInstance
-                                                      (di c)
-                                                      (getAttribute "id" c)
-                                                      (getDeviceProperties c dts)
-                                           ) (listChildren n)
-    | otherwise = getDeviceInstances (nextSibling n) dts
+getDeviceInstances :: [Node] -> [DeviceType] -> [DeviceInstance]
+getDeviceInstances [] _ = []
+getDeviceInstances (n:ns) dts
+    | unpack nm == "DeviceInstances" = map (\c ->
+                                         DeviceInstance
+                                          (getAttribute "type" c)
+                                          (getAttribute "id" c)
+                                          (getDeviceProperties c)
+                                         ) (children n)
+    | otherwise = getDeviceInstances ns dts
   where
-    di c = getAttribute "type" c
+    nm = name n
 
-getDeviceProperties :: Node -> [DeviceType] -> [DeviceProperty]
-getDeviceProperties d dts
-    | children == [] = []
-    | otherwise      = parseProperties props
+getDeviceProperties :: Node -> [DeviceProperty]
+getDeviceProperties d
+    | cs == []  = []
+    | otherwise = concatMap (\(Text b) -> parseProperties (unpack $ b)) xs
   where
-    children = listChildren d
-    p = head $ children
-    props = trim $ getValue (head $ listChildren p)
-    trim s = do
-      let f = if (head s == ' ') then tail s else s
-      let r = if (last f == ' ') then init f else f
-      r
+    ps = getChildrenWithName "P" d
+    cs = children d
+    xs = concatMap contents ps
 
 parseProperties :: String -> [DeviceProperty]
 parseProperties props = map (\(f, s) -> DeviceProperty f s) form
   where
     sep = map (\s -> splitAt (ind s) s) (splitOn "," props)
     treat = map (\(p, v) -> ((tail $ init p), drop 2 v)) sep
-    form = map (\(p, v) -> (p, v)) treat
+    form = map (\(p, v) -> if (p !! 0) == '\"'
+                    then (tail p, v)
+                    else (p, v)) treat
     ind s = case (':' `elemIndex` s) of
       Just n  -> n
       Nothing -> 0
 
-getEdgeInstances :: Maybe Node -> [DeviceInstance] -> [EdgeInstance]
-getEdgeInstances Nothing _ = []
-getEdgeInstances (Just n) dis
-    | getName n == "EdgeInstances" = map (\c -> parsePath c dis
-                                         ) (listChildren n)
-    | otherwise = getEdgeInstances (nextSibling n) dis
+getEdgeInstances :: [Node] -> [DeviceInstance] -> [EdgeInstance]
+getEdgeInstances _ [] = []
+getEdgeInstances [] _ = []
+getEdgeInstances (n:ns) dis
+    | unpack nm == "EdgeInstances" = map (\c -> parsePath c dis
+                                         ) (children n)
+    | otherwise = getEdgeInstances ns dis
+  where
+    nm = name n
 
 parsePath :: Node -> [DeviceInstance] -> EdgeInstance
 parsePath pth dis = EdgeInstance (i first) (o second)
@@ -189,18 +199,18 @@ parsePath pth dis = EdgeInstance (i first) (o second)
     o Nothing = findDeviceInstance "" dis
 
 getAttribute :: String -> Node -> String
-getAttribute att n = case Pugi.attribute (pack att) n of
-    Just x  -> unpack x
-    Nothing -> ""
-
-getName :: Node -> String
-getName n = unpack $ Pugi.getName n
-
-getValue :: Node -> String
-getValue n = unpack $ Pugi.getValue n
-
-listChildren :: Node -> [Node]
-listChildren = findChildren . firstChild
+getAttribute a n = isAttr atts
   where
-    findChildren (Just x) = [x] ++ (findChildren $ nextSibling x)
-    findChildren (Nothing) = []
+    atts = attributes n
+    isAttr [] = ""
+    isAttr (x:xs) = if (unpack $ fst x) == a then (unpack $ snd x) else isAttr xs
+
+getChildrenWithName :: String -> Node -> [Node]
+getChildrenWithName s n = filter (\c -> (unpack $ name c) == s) cs
+  where
+    cs = children n
+
+getCData :: [Content] -> String
+getCData [] = []
+getCData ((CData c):_) = unpack $ c
+getCData (_:cs) = getCData cs
